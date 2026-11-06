@@ -27,6 +27,7 @@ import {
   deleteProduct,
   isProductAvailable,
   setProductAvailability,
+  clearStoredProducts,
 } from '@/lib/store';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
@@ -196,6 +197,13 @@ export default function AdminKatalogPage() {
   const handleDelete = (id: string, name: string) => {
     if (confirm(`Yakin ingin menghapus menu "${name}"?`)) {
       deleteProduct(id);
+      refreshProducts();
+    }
+  };
+
+  const handleClearAll = () => {
+    if (confirm('Yakin ingin mengosongkan semua menu di katalog (reset ke 0 produk)?')) {
+      clearStoredProducts();
       refreshProducts();
     }
   };
@@ -378,7 +386,7 @@ export default function AdminKatalogPage() {
 
           {/* Action Button matching SVG (x:609, y:223, w:177, h:52, fill: #C2652A) */}
           <div className="flex items-center gap-3">
-            {totalProducts === 0 && (
+            {totalProducts === 0 ? (
               <button
                 type="button"
                 onClick={handleLoadDemoProducts}
@@ -387,6 +395,16 @@ export default function AdminKatalogPage() {
               >
                 <RotateCcw size={15} className="text-[#C2652A]" />
                 <span>Muat Preset Demo</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleClearAll}
+                className="px-4 py-3 rounded-xl bg-white hover:bg-rose-50 border border-rose-200 text-rose-600 text-xs font-semibold tracking-wide flex items-center gap-2 shadow-xs transition-all"
+                title="Kosongkan semua produk dari katalog (reset ke 0)"
+              >
+                <Trash2 size={15} />
+                <span>Kosongkan Menu (0)</span>
               </button>
             )}
 

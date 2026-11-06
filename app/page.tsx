@@ -123,14 +123,14 @@ export default function HomePage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <span className="text-[10px] text-[#C2652A] uppercase tracking-wider font-bold">
-                          Seduhan Spesial Hari Ini
+                          {products.length > 0 ? 'Seduhan Spesial Hari Ini' : 'Artisan Coffee & Kitchen'}
                         </span>
                         <h4 className="font-serif text-base font-bold text-[#3A302A] mt-0.5">
-                          Signature Aren Latte
+                          {products.length > 0 ? products[0].name : 'GH Roviq Stix & Co'}
                         </h4>
                       </div>
                       <span className="text-sm font-bold text-[#3A302A] bg-[#F6F0E8] px-2.5 py-1 rounded-lg">
-                        Rp 25.000
+                        {products.length > 0 ? formatRupiah(products[0].price) : 'Bandung'}
                       </span>
                     </div>
                   </div>

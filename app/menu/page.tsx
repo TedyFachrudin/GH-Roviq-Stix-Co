@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Search, Plus, Coffee, Sparkles } from 'lucide-react';
 import { getStoredProducts, isProductAvailable } from '@/lib/store';
-import { getProductsFromSupabase } from '@/lib/supabase';
 import { CategoryType, Product } from '@/types';
 import { useCart } from '@/context/CartContext';
 
@@ -26,12 +25,6 @@ export default function MenuPage() {
     sync();
     window.addEventListener('gh_products_updated', sync);
     window.addEventListener('storage', sync);
-
-    getProductsFromSupabase().then((data) => {
-      if (data && data.length > 0) {
-        setProducts(data);
-      }
-    });
 
     return () => {
       window.removeEventListener('gh_products_updated', sync);

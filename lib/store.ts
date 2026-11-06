@@ -1,8 +1,8 @@
 import { Product, OrderDetails, CategoryType } from '@/types';
 import { PRODUCTS } from './products-data';
 
-const PRODUCTS_KEY = 'gh_roviq_products';
-const UNAVAILABLE_PRODUCTS_KEY = 'gh_roviq_unavailable_products';
+const PRODUCTS_KEY = 'gh_roviq_products_v2';
+const UNAVAILABLE_PRODUCTS_KEY = 'gh_roviq_unavailable_products_v2';
 const ORDERS_KEY = 'gh_roviq_global_orders';
 
 /* =========================================================
@@ -34,6 +34,19 @@ export function saveStoredProducts(products: Product[]): void {
     window.dispatchEvent(new Event('gh_products_updated'));
   } catch (e) {
     console.error('Failed to save products:', e);
+  }
+}
+
+/**
+ * Resets/Clears all products to 0 items.
+ */
+export function clearStoredProducts(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PRODUCTS_KEY, JSON.stringify([]));
+    window.dispatchEvent(new Event('gh_products_updated'));
+  } catch (e) {
+    console.error('Failed to clear products:', e);
   }
 }
 
