@@ -47,9 +47,15 @@ export default function ProfilePage() {
   }, [user?.id]);
 
   // Profile data when user is signed in as a member
+  const memberName =
+    (user as any)?.username ||
+    user?.fullName ||
+    user?.firstName ||
+    'Sahabat Seduh';
+
   const memberData: MemberProfile = {
     id: memberId,
-    name: user?.fullName || user?.firstName || 'Sahabat Seduh',
+    name: memberName,
     email: user?.primaryEmailAddress?.emailAddress || 'member@ghroviq.com',
     phone: '+62 812-3456-7890',
     tier: memberStamps >= 10 ? 'Gold' : 'Artisan Club',
@@ -93,7 +99,7 @@ export default function ProfilePage() {
                   Profil Anggota
                 </span>
                 <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#3A302A] mt-1">
-                  Selamat Datang, {user?.firstName || 'Sahabat Seduh'}
+                  Selamat Datang, {memberName}
                 </h1>
                 <p className="text-sm text-[#605850] mt-0.5">
                   Anggota sejak {memberData.joinDate} • Status Aktif

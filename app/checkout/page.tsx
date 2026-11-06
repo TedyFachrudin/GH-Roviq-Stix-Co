@@ -34,8 +34,8 @@ export default function CheckoutPage() {
   const [createdOrder, setCreatedOrder] = useState<OrderDetails | null>(null);
 
   React.useEffect(() => {
-    if (user?.fullName || user?.firstName) {
-      setCustomerName(user.fullName || user.firstName || '');
+    if (user) {
+      setCustomerName((user as any)?.username || user.fullName || user.firstName || '');
     }
   }, [user]);
 

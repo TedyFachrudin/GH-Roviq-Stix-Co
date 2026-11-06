@@ -50,6 +50,14 @@
   background-color: #C2652A;
 }
 
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 .text-terracotta {
   color: #C2652A;
 }
