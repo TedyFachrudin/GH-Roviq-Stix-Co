@@ -198,13 +198,6 @@ export default function AdminKatalogPage() {
       };
       addProduct(newProduct);
     }
-        image: formData.image,
-        badge: formData.badge || undefined,
-        temperatureOptions: tempOptions.length > 0 ? tempOptions : undefined,
-        rating: Number(formData.rating) || 4.9,
-      };
-      addProduct(newProduct);
-    }
 
     setIsModalOpen(false);
     refreshProducts();
