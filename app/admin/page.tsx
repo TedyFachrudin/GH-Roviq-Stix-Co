@@ -618,13 +618,22 @@ export default function AdminKatalogPage() {
                     Harga (Rp) *
                   </label>
                   <input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     required
-                    min={0}
-                    step={1000}
-                    placeholder="Misal: 25000"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? '' : Number(e.target.value) })}
+                    placeholder="Misal: 25.000"
+                    value={
+                      formData.price === ''
+                        ? ''
+                        : new Intl.NumberFormat('id-ID').format(Number(formData.price))
+                    }
+                    onChange={(e) => {
+                      const rawDigits = e.target.value.replace(/\D/g, '');
+                      setFormData({
+                        ...formData,
+                        price: rawDigits === '' ? '' : Number(rawDigits),
+                      });
+                    }}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#D8D0C8] text-sm text-[#3A302A] focus:outline-none focus:border-[#C2652A]"
                   />
                 </div>
