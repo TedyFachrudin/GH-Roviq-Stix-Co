@@ -5,18 +5,24 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ShoppingBag, Menu as MenuIcon, X, User } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
-import { AppSignedIn, AppSignedOut, AppUserButton } from '@/lib/auth';
+import { useAppUser, AppSignedIn, AppSignedOut, AppUserButton } from '@/lib/auth';
+import { isAdminUser } from '@/lib/admin';
 import { BrandLogo } from '@/components/ui/BrandLogo';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
   const { totalItems, setIsDrawerOpen } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user } = useAppUser();
+  const isAdmin = isAdminUser(user);
 
   const navLinks = [
     { name: 'Beranda', href: '/' },
     { name: 'Menu', href: '/menu' },
-    { name: 'Profil & Loyalty', href: '/profil' },
+    {
+      name: isAdmin ? 'Dashboard Admin' : 'Profil & Loyalty',
+      href: isAdmin ? '/admin' : '/profil',
+    },
   ];
 
   return (
@@ -40,7 +46,9 @@ export const Navbar: React.FC = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
             {navLinks.map((link) => {
-              const isActive = pathname === link.href;
+              const isActive =
+                pathname === link.href ||
+                (link.href === '/admin' && pathname.startsWith('/admin'));
               return (
                 <Link
                   key={link.name}
@@ -130,7 +138,9 @@ export const Navbar: React.FC = () => {
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#FAF5EE] border-b border-[#E8E2D9] px-4 pt-2 pb-6 space-y-3">
           {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+            const isActive =
+              pathname === link.href ||
+              (link.href === '/admin' && pathname.startsWith('/admin'));
             return (
               <Link
                 key={link.name}
