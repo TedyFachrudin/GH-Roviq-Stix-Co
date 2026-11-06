@@ -11,7 +11,6 @@ import {
   ChefHat,
   Coffee,
   Phone,
-  PlusCircle,
   AlertCircle,
   Check,
   ChevronRight,
@@ -247,18 +246,6 @@ export default function AdminPesananPage() {
               <option value="Diproses">Diproses</option>
               <option value="Selesai">Selesai</option>
             </select>
-
-            {orders.length === 0 && (
-              <button
-                type="button"
-                onClick={handleSeedOrder}
-                className="px-3.5 py-2.5 rounded-xl bg-white hover:bg-[#FAF5EE] border border-[#D8D0C8] text-xs font-semibold text-[#C2652A] flex items-center gap-1.5 transition-all shadow-2xs"
-                title="Muat pesanan contoh untuk menguji tampilan real-time"
-              >
-                <PlusCircle size={14} />
-                <span>Simulasi Pesanan Baru</span>
-              </button>
-            )}
           </div>
 
         </div>
@@ -274,20 +261,9 @@ export default function AdminPesananPage() {
                 Belum Ada Pesanan Masuk
               </h3>
               <p className="text-xs text-[#605850]">
-                {orders.length === 0
-                  ? 'Saat pelanggan melakukan checkout, pesanan akan langsung muncul secara real-time di halaman ini.'
-                  : 'Tidak ada pesanan yang cocok dengan filter yang dipilih.'}
+                Saat pelanggan melakukan checkout, pesanan akan langsung muncul secara real-time di halaman ini.
               </p>
             </div>
-            {orders.length === 0 && (
-              <button
-                type="button"
-                onClick={handleSeedOrder}
-                className="px-5 py-2.5 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs font-semibold tracking-wide transition-all shadow-sm"
-              >
-                + Buat Pesanan Simulasi (Contoh)
-              </button>
-            )}
           </div>
         ) : (
           <div className="space-y-6">
