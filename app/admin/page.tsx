@@ -16,7 +16,6 @@ import {
   X,
   Filter,
   Check,
-  RotateCcw,
 } from 'lucide-react';
 import { Product, CategoryType } from '@/types';
 import {
@@ -214,77 +213,6 @@ export default function AdminKatalogPage() {
     refreshProducts();
   };
 
-  const handleLoadDemoProducts = () => {
-    const demoCatalog: Product[] = [
-      {
-        id: 'gh-01',
-        name: 'Signature Aren Latte',
-        category: 'Kopi',
-        price: 25000,
-        description: 'Espresso house blend gayo dipadu susu segar dan sirup gula aren organik.',
-        image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
-        badge: 'Terlaris',
-        temperatureOptions: ['Panas', 'Dingin'],
-        rating: 4.9,
-      },
-      {
-        id: 'gh-02',
-        name: 'Artisan V60 Pour Over',
-        category: 'Kopi',
-        price: 28000,
-        description: 'Biji kopi single origin pilihan dataran tinggi Gayo diseduh manual dengan metode V60.',
-        image: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=800&auto=format&fit=crop',
-        badge: 'Pilihan Barista',
-        temperatureOptions: ['Panas', 'Dingin'],
-        rating: 4.9,
-      },
-      {
-        id: 'gh-03',
-        name: 'Flat White Melbourne',
-        category: 'Kopi',
-        price: 26000,
-        description: 'Double shot ristretto berkarakter kuat dengan microfoam susu yang lembut dan velvety.',
-        image: 'https://images.unsplash.com/photo-1577968897966-3d4325b36b61?q=80&w=800&auto=format&fit=crop',
-        temperatureOptions: ['Panas'],
-        rating: 4.8,
-      },
-      {
-        id: 'gh-04',
-        name: 'Cold Brew Citrus',
-        category: 'Kopi',
-        price: 27000,
-        description: 'Ekstraksi dingin selama 18 jam dengan sentuhan kesegaran irisan jeruk sunkist.',
-        image: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?q=80&w=800&auto=format&fit=crop',
-        badge: 'Musim Ini',
-        temperatureOptions: ['Dingin'],
-        rating: 4.7,
-      },
-      {
-        id: 'gh-05',
-        name: 'Sourdough Toast & Scramble',
-        category: 'Makanan',
-        price: 38000,
-        description: 'Roti sourdough panggang renyah disajikan dengan telur orak-arik lembut minyak truffle.',
-        image: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=800&auto=format&fit=crop',
-        badge: 'Sarapan Favorit',
-        rating: 4.9,
-      },
-      {
-        id: 'gh-06',
-        name: 'Almond Croissant Butter',
-        category: 'Camilan',
-        price: 24000,
-        description: 'Pastry mentega berlapis ala Prancis dengan isian krim frangipane dan taburan almond panggang.',
-        image: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=800&auto=format&fit=crop',
-        badge: 'Paling Disukai',
-        rating: 4.9,
-      },
-    ];
-
-    saveStoredProducts(demoCatalog);
-    refreshProducts();
-  };
-
   if (isLoading || !isAdmin) {
     return (
       <div className="min-h-screen bg-[#FAF5EE] flex items-center justify-center p-6 text-center">
@@ -386,17 +314,7 @@ export default function AdminKatalogPage() {
 
           {/* Action Button matching SVG (x:609, y:223, w:177, h:52, fill: #C2652A) */}
           <div className="flex items-center gap-3">
-            {totalProducts === 0 ? (
-              <button
-                type="button"
-                onClick={handleLoadDemoProducts}
-                className="px-4 py-3 rounded-xl bg-white hover:bg-[#FAF5EE] border border-[#D8D0C8] text-[#3A302A] text-xs font-semibold tracking-wide flex items-center gap-2 shadow-xs transition-all"
-                title="Muat 6 produk standar untuk mempermudah setup awal"
-              >
-                <RotateCcw size={15} className="text-[#C2652A]" />
-                <span>Muat Preset Demo</span>
-              </button>
-            ) : (
+            {totalProducts > 0 && (
               <button
                 type="button"
                 onClick={handleClearAll}
@@ -487,20 +405,13 @@ export default function AdminKatalogPage() {
               </p>
             </div>
             {totalProducts === 0 ? (
-              <div className="pt-2 flex flex-col gap-2">
+              <div className="pt-2">
                 <button
                   type="button"
                   onClick={handleOpenAddModal}
                   className="px-5 py-2.5 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs font-semibold tracking-wide transition-all shadow-sm"
                 >
                   + Tambah Produk Pertama
-                </button>
-                <button
-                  type="button"
-                  onClick={handleLoadDemoProducts}
-                  className="text-xs text-[#605850] hover:text-[#C2652A] underline"
-                >
-                  atau muat data demo
                 </button>
               </div>
             ) : (

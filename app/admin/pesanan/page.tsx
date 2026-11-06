@@ -22,7 +22,6 @@ import {
   getStoredOrders,
   saveStoredOrders,
   updateOrderStatus,
-  seedSampleOrders,
 } from '@/lib/store';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
@@ -98,11 +97,6 @@ export default function AdminPesananPage() {
 
   const handleStatusChange = (orderId: string, newStatus: 'Menunggu' | 'Diproses' | 'Selesai') => {
     updateOrderStatus(orderId, newStatus);
-    refreshOrders();
-  };
-
-  const handleSeedOrder = () => {
-    seedSampleOrders();
     refreshOrders();
   };
 
