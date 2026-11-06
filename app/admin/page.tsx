@@ -31,7 +31,6 @@ import {
 } from '@/lib/store';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { RevenueModal } from '@/components/admin/RevenueModal';
 
 const CATEGORIES: CategoryType[] = ['Semua', 'Kopi', 'Makanan', 'Camilan', 'Minuman'];
 
@@ -43,7 +42,6 @@ export default function AdminKatalogPage() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<'Semua' | 'Tersedia' | 'Habis'>('Semua');
-  const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -240,7 +238,7 @@ export default function AdminKatalogPage() {
     <div className="min-h-screen bg-[#FAF5EE] flex flex-col lg:flex-row">
       
       {/* Sidebar matching SVG layout */}
-      <AdminSidebar onOpenRevenueModal={() => setIsRevenueModalOpen(true)} />
+      <AdminSidebar />
 
       {/* Main Content Area (width: 992px, background: #FAF5EE) */}
       <main className="flex-1 p-6 sm:p-10 max-w-6xl space-y-8">
@@ -547,12 +545,6 @@ export default function AdminKatalogPage() {
         )}
 
       </main>
-
-      {/* PopOut Modal for Revenue Omset */}
-      <RevenueModal
-        isOpen={isRevenueModalOpen}
-        onClose={() => setIsRevenueModalOpen(false)}
-      />
 
       {/* Add / Edit Product Modal Dialog */}
       {isModalOpen && (

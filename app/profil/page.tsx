@@ -22,7 +22,6 @@ import {
 import { useAppUser, AppSignOutButton } from '@/lib/auth';
 import { isAdminUser } from '@/lib/admin';
 import { LoyaltyCard } from '@/components/member/LoyaltyCard';
-import { RevenueModal } from '@/components/admin/RevenueModal';
 import {
   getStoredProducts,
   getStoredOrders,
@@ -42,7 +41,6 @@ export default function ProfilePage() {
 
   // Admin stats
   const isAdmin = isAdminUser(user);
-  const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
   const [adminProductsCount, setAdminProductsCount] = useState(0);
   const [adminInStockCount, setAdminInStockCount] = useState(0);
   const [adminPendingOrdersCount, setAdminPendingOrdersCount] = useState(0);
@@ -263,14 +261,13 @@ export default function ProfilePage() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setIsRevenueModalOpen(true)}
+                  <Link
+                    href="/admin/omset"
                     className="w-full py-2.5 px-3.5 rounded-xl bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] text-xs font-semibold flex items-center justify-between transition-all"
                   >
-                    <span>Buka PopOut Omset</span>
-                    <ArrowUpRight size={14} />
-                  </button>
+                    <span>Lihat Laporan Omset</span>
+                    <ArrowRight size={14} />
+                  </Link>
                 </div>
 
               </div>
@@ -471,15 +468,6 @@ export default function ProfilePage() {
         )}
 
       </div>
-
-      {/* Popout Total Omset & Pendapatan Modal */}
-      {isAdmin && (
-        <RevenueModal
-          isOpen={isRevenueModalOpen}
-          onClose={() => setIsRevenueModalOpen(false)}
-        />
-      )}
-
     </div>
   );
 }

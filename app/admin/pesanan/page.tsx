@@ -24,7 +24,6 @@ import {
 } from '@/lib/store';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
-import { RevenueModal } from '@/components/admin/RevenueModal';
 
 export default function AdminPesananPage() {
   const router = useRouter();
@@ -35,7 +34,6 @@ export default function AdminPesananPage() {
   const [selectedType, setSelectedType] = useState<string>('Semua');
   const [selectedStatus, setSelectedStatus] = useState<string>('Semua');
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isRevenueModalOpen, setIsRevenueModalOpen] = useState(false);
 
   // Protect Admin route
   useEffect(() => {
@@ -116,7 +114,7 @@ export default function AdminPesananPage() {
     <div className="min-h-screen bg-[#FAF5EE] flex flex-col lg:flex-row">
       
       {/* Sidebar matching SVG layout */}
-      <AdminSidebar onOpenRevenueModal={() => setIsRevenueModalOpen(true)} />
+      <AdminSidebar />
 
       {/* Main Content Area (width: 992px, background: #FAF5EE) */}
       <main className="flex-1 p-6 sm:p-10 max-w-6xl space-y-8">
@@ -436,12 +434,6 @@ export default function AdminPesananPage() {
         )}
 
       </main>
-
-      {/* PopOut Modal for Revenue Omset */}
-      <RevenueModal
-        isOpen={isRevenueModalOpen}
-        onClose={() => setIsRevenueModalOpen(false)}
-      />
 
     </div>
   );

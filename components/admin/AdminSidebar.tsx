@@ -17,10 +17,10 @@ import { useAdminAuth } from '@/lib/admin';
 import { getStoredOrders } from '@/lib/store';
 
 interface AdminSidebarProps {
-  onOpenRevenueModal: () => void;
+  onOpenRevenueModal?: () => void;
 }
 
-export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps) {
+export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
   const pathname = usePathname();
   const router = useRouter();
   const { adminUser, logout } = useAdminAuth();
@@ -61,6 +61,12 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps) {
       active: pathname === '/admin/pesanan',
       icon: ClipboardList,
       badge: pendingOrdersCount > 0 ? `${pendingOrdersCount}` : undefined,
+    },
+    {
+      label: 'Laporan Omset',
+      href: '/admin/omset',
+      active: pathname === '/admin/omset',
+      icon: TrendingUp,
     },
   ];
 
@@ -131,21 +137,6 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps) {
               </Link>
             );
           })}
-
-          {/* Laporan Omset Button (triggers PopOut modal matching PopOut Total Pendapatan Omset.svg) */}
-          <button
-            type="button"
-            onClick={onOpenRevenueModal}
-            className="w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold tracking-wide text-[#605850] hover:text-[#3A302A] hover:bg-[#FAF5EE] transition-all group"
-          >
-            <div className="flex items-center gap-3">
-              <TrendingUp size={17} className="text-[#C2652A]" />
-              <span>Laporan Omset</span>
-            </div>
-            <span className="text-[10px] uppercase font-bold text-[#C2652A] bg-[#F2ECE4] group-hover:bg-[#E8E2D9] px-2 py-0.5 rounded-md transition-colors">
-              PopOut
-            </span>
-          </button>
         </div>
 
         {/* Quick Link to Customer Storefront */}
