@@ -698,17 +698,6 @@ export default function AdminKatalogPage() {
                     />
                   </label>
                 )}
-
-                {/* Alternatif Input URL Gambar */}
-                <div>
-                  <input
-                    type="url"
-                    placeholder="Atau tempel URL gambar langsung (opsional: https://...)"
-                    value={formData.image.startsWith('data:') ? '' : formData.image}
-                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D8D0C8] text-xs text-[#3A302A] placeholder-[#9A9088] font-mono focus:outline-none focus:border-[#C2652A]"
-                  />
-                </div>
               </div>
 
               {/* Optional Badge & Temperature options */}
