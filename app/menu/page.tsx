@@ -175,6 +175,7 @@ export default function MenuPage() {
                       src={product.image}
                       alt={product.name}
                       fill
+                      unoptimized={Boolean(product.image?.startsWith("data:"))}
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />

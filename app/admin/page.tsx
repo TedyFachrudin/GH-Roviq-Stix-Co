@@ -16,6 +16,7 @@ import {
   X,
   Filter,
   Check,
+  Upload,
 } from 'lucide-react';
 import { Product, CategoryType } from '@/types';
 import {
@@ -34,15 +35,6 @@ import { RevenueModal } from '@/components/admin/RevenueModal';
 
 const CATEGORIES: CategoryType[] = ['Semua', 'Kopi', 'Makanan', 'Camilan', 'Minuman'];
 
-const SAMPLE_IMAGE_PRESETS = [
-  { label: 'Signature Aren Latte', url: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop' },
-  { label: 'V60 Pour Over', url: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=800&auto=format&fit=crop' },
-  { label: 'Flat White', url: 'https://images.unsplash.com/photo-1577968897966-3d4325b36b61?q=80&w=800&auto=format&fit=crop' },
-  { label: 'Cold Brew Citrus', url: 'https://images.unsplash.com/photo-1517701550927-30cf4ba1dba5?q=80&w=800&auto=format&fit=crop' },
-  { label: 'Almond Croissant', url: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=800&auto=format&fit=crop' },
-  { label: 'Sourdough Scramble', url: 'https://images.unsplash.com/photo-1525351484163-7529414344d8?q=80&w=800&auto=format&fit=crop' },
-];
-
 export default function AdminKatalogPage() {
   const router = useRouter();
   const { isAdmin, isLoading } = useAdminAuth();
@@ -59,13 +51,13 @@ export default function AdminKatalogPage() {
   const [formData, setFormData] = useState({
     name: '',
     category: 'Kopi' as CategoryType,
-    price: 25000,
+    price: '' as string | number,
     description: '',
-    image: SAMPLE_IMAGE_PRESETS[0].url,
-    badge: 'Terlaris',
-    hasHot: true,
-    hasCold: true,
-    rating: 4.9,
+    image: '',
+    badge: '',
+    hasHot: false,
+    hasCold: false,
+    rating: 5.0,
   });
 
   // Protect Admin route
@@ -128,15 +120,30 @@ export default function AdminKatalogPage() {
     setFormData({
       name: '',
       category: 'Kopi',
-      price: 25000,
+      price: '',
       description: '',
-      image: SAMPLE_IMAGE_PRESETS[0].url,
-      badge: 'Terlaris',
-      hasHot: true,
-      hasCold: true,
-      rating: 4.9,
+      image: '',
+      badge: '',
+      hasHot: false,
+      hasCold: false,
+      rating: 5.0,
     });
     setIsModalOpen(true);
+  };
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 3 * 1024 * 1024) {
+        alert('Ukuran gambar maksimal 3MB.');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        setFormData((prev) => ({ ...prev, image: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleOpenEditModal = (product: Product) => {
@@ -148,9 +155,9 @@ export default function AdminKatalogPage() {
       description: product.description,
       image: product.image,
       badge: product.badge || '',
-      hasHot: product.temperatureOptions?.includes('Panas') ?? true,
-      hasCold: product.temperatureOptions?.includes('Dingin') ?? true,
-      rating: product.rating || 4.9,
+      hasHot: product.temperatureOptions?.includes('Panas') ?? false,
+      hasCold: product.temperatureOptions?.includes('Dingin') ?? false,
+      rating: product.rating || 5.0,
     });
     setIsModalOpen(true);
   };
@@ -163,24 +170,34 @@ export default function AdminKatalogPage() {
     if (formData.hasHot) tempOptions.push('Panas');
     if (formData.hasCold) tempOptions.push('Dingin');
 
+    const productPrice = Number(formData.price) || 0;
+    const productImage = formData.image.trim() || '/logo-gh-roviq.svg';
+
     if (editingProduct) {
       updateProduct(editingProduct.id, {
         name: formData.name,
         category: formData.category,
-        price: Number(formData.price),
+        price: productPrice,
         description: formData.description,
-        image: formData.image,
+        image: productImage,
         badge: formData.badge || undefined,
         temperatureOptions: tempOptions.length > 0 ? tempOptions : undefined,
-        rating: Number(formData.rating) || 4.9,
+        rating: Number(formData.rating) || 5.0,
       });
     } else {
       const newProduct: Product = {
         id: `gh-${Date.now().toString().slice(-4)}`,
         name: formData.name,
         category: formData.category,
-        price: Number(formData.price),
+        price: productPrice,
         description: formData.description,
+        image: productImage,
+        badge: formData.badge || undefined,
+        temperatureOptions: tempOptions.length > 0 ? tempOptions : undefined,
+        rating: Number(formData.rating) || 5.0,
+      };
+      addProduct(newProduct);
+    }
         image: formData.image,
         badge: formData.badge || undefined,
         temperatureOptions: tempOptions.length > 0 ? tempOptions : undefined,
@@ -240,7 +257,7 @@ export default function AdminKatalogPage() {
           <div className="space-y-1">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#F6F0E8] border border-[#E8E2D9] text-[#C2652A] text-[11px] font-semibold tracking-wider uppercase">
               <span className="w-2 h-2 rounded-full bg-[#C2652A]" />
-              <span>Mode Manajemen Aktif</span>
+              <span>Tambah Menu</span>
             </div>
             <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#3A302A] tracking-tight">
               Katalog & Stok Produk
@@ -445,6 +462,7 @@ export default function AdminKatalogPage() {
                         src={product.image}
                         alt={product.name}
                         fill
+                        unoptimized={Boolean(product.image?.startsWith("data:"))}
                         className="object-cover group-hover:scale-105 transition-transform duration-300"
                         sizes="64px"
                       />
@@ -609,10 +627,11 @@ export default function AdminKatalogPage() {
                   <input
                     type="number"
                     required
-                    min={1000}
+                    min={0}
                     step={1000}
+                    placeholder="Misal: 25000"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
+                    onChange={(e) => setFormData({ ...formData, price: e.target.value === '' ? '' : Number(e.target.value) })}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#D8D0C8] text-sm text-[#3A302A] focus:outline-none focus:border-[#C2652A]"
                   />
                 </div>
@@ -632,41 +651,70 @@ export default function AdminKatalogPage() {
                 />
               </div>
 
-              {/* Image URL & Presets */}
+              {/* Upload Foto Produk dari Perangkat */}
               <div className="space-y-2">
                 <label className="font-semibold uppercase tracking-wider text-[#3A302A] block">
-                  URL Gambar Produk
+                  Foto Produk
                 </label>
-                <input
-                  type="url"
-                  required
-                  placeholder="https://..."
-                  value={formData.image}
-                  onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                  className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D8D0C8] text-xs text-[#3A302A] font-mono focus:outline-none focus:border-[#C2652A]"
-                />
-                
-                {/* Image Presets Selector */}
-                <div className="space-y-1">
-                  <span className="text-[10px] text-[#9A9088] uppercase block">
-                    Pilih Gambar Preset Cepat:
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    {SAMPLE_IMAGE_PRESETS.map((preset) => (
+
+                {formData.image ? (
+                  <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden bg-[#ECE6DC] border border-[#D8D0C8] group">
+                    <img
+                      src={formData.image}
+                      alt="Pratinjau foto produk"
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                      <label className="px-3.5 py-1.5 rounded-xl bg-white text-[#3A302A] font-semibold text-xs cursor-pointer hover:bg-[#FAF5EE] transition-colors shadow-sm flex items-center gap-1.5">
+                        <Upload size={13} />
+                        <span>Ganti Foto</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleImageUpload}
+                          className="hidden"
+                        />
+                      </label>
                       <button
-                        key={preset.label}
                         type="button"
-                        onClick={() => setFormData({ ...formData, image: preset.url })}
-                        className={`px-2.5 py-1 rounded-lg text-[10px] font-medium transition-all ${
-                          formData.image === preset.url
-                            ? 'bg-[#C2652A] text-white shadow-2xs'
-                            : 'bg-white text-[#605850] hover:bg-[#F2ECE4] border border-[#E8E2D9]'
-                        }`}
+                        onClick={() => setFormData((prev) => ({ ...prev, image: '' }))}
+                        className="px-3.5 py-1.5 rounded-xl bg-red-600 text-white font-semibold text-xs hover:bg-red-700 transition-colors shadow-sm"
                       >
-                        {preset.label}
+                        Hapus
                       </button>
-                    ))}
+                    </div>
                   </div>
+                ) : (
+                  <label className="border-2 border-dashed border-[#D8D0C8] hover:border-[#C2652A] rounded-2xl p-5 flex flex-col items-center justify-center gap-2 cursor-pointer bg-white hover:bg-[#FAF5EE] transition-all group">
+                    <div className="w-10 h-10 rounded-full bg-[#F6F0E8] group-hover:bg-[#F2ECE4] text-[#C2652A] flex items-center justify-center transition-colors">
+                      <Upload size={18} />
+                    </div>
+                    <div className="text-center">
+                      <span className="font-semibold text-xs text-[#3A302A] group-hover:text-[#C2652A] transition-colors block">
+                        Klik untuk upload foto dari perangkat
+                      </span>
+                      <span className="text-[10px] text-[#9A9088]">
+                        Mendukung JPG, PNG, WEBP (Maks. 3MB)
+                      </span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
+                    />
+                  </label>
+                )}
+
+                {/* Alternatif Input URL Gambar */}
+                <div>
+                  <input
+                    type="url"
+                    placeholder="Atau tempel URL gambar langsung (opsional: https://...)"
+                    value={formData.image.startsWith('data:') ? '' : formData.image}
+                    onChange={(e) => setFormData({ ...formData, image: e.target.value })}
+                    className="w-full px-3.5 py-2 rounded-xl bg-white border border-[#D8D0C8] text-xs text-[#3A302A] placeholder-[#9A9088] font-mono focus:outline-none focus:border-[#C2652A]"
+                  />
                 </div>
               </div>
 

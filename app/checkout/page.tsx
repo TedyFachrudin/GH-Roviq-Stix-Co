@@ -379,6 +379,7 @@ export default function CheckoutPage() {
                           src={item.product.image}
                           alt={item.product.name}
                           fill
+                          unoptimized={Boolean(item.product.image?.startsWith("data:"))}
                           className="object-cover"
                           sizes="40px"
                         />

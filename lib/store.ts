@@ -5,13 +5,6 @@ const PRODUCTS_KEY = 'gh_roviq_products_v2';
 const UNAVAILABLE_PRODUCTS_KEY = 'gh_roviq_unavailable_products_v2';
 const ORDERS_KEY = 'gh_roviq_global_orders_v2';
 
-/* =========================================================
-   PRODUCTS MANAGEMENT
-   ========================================================= */
-
-/**
- * Returns products from localStorage. Default is empty array [] as requested.
- */
 export function getStoredProducts(): Product[] {
   if (typeof window === 'undefined') return PRODUCTS;
   try {
