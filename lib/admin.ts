@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useAppUser } from './auth';
 
 export interface AdminUser {
   username: string;
@@ -28,6 +29,28 @@ export function verifyAdminCredentials(identifier: string, pass: string): boolea
   const isPasswordMatch = pass === ADMIN_CONFIG.password;
 
   return (isUsernameMatch || isEmailMatch) && isPasswordMatch;
+}
+
+/**
+ * Checks if an authenticated user object corresponds to the admin
+ */
+export function isAdminUser(user: any): boolean {
+  if (!user) return false;
+  const email = (
+    user.primaryEmailAddress?.emailAddress ||
+    user.email ||
+    (Array.isArray(user.emailAddresses) ? user.emailAddresses[0]?.emailAddress : '') ||
+    ''
+  ).toLowerCase();
+  const username = (user.username || user.firstName || '').toLowerCase();
+  const fullName = (user.fullName || '').toLowerCase();
+
+  return (
+    email === ADMIN_CONFIG.email.toLowerCase() ||
+    email === 'roviq@ghroviq.com' ||
+    username === ADMIN_CONFIG.username.toLowerCase() ||
+    fullName.includes('roviq')
+  );
 }
 
 /**
@@ -79,6 +102,7 @@ export function logoutAdmin(): void {
  * React Hook for admin authentication check and real-time state
  */
 export function useAdminAuth() {
+  const { user: appUser, isSignedIn } = useAppUser();
   const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -98,9 +122,11 @@ export function useAdminAuth() {
     };
   }, []);
 
+  const isMemberAdmin = Boolean(isSignedIn && isAdminUser(appUser));
+
   return {
-    isAdmin: Boolean(adminUser),
-    adminUser,
+    isAdmin: Boolean(adminUser) || isMemberAdmin,
+    adminUser: adminUser || (isMemberAdmin ? { username: ADMIN_CONFIG.username, email: ADMIN_CONFIG.email, role: 'admin' as const, loggedInAt: '' } : null),
     isLoading,
     logout: logoutAdmin,
   };

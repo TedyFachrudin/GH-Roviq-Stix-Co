@@ -91,7 +91,8 @@ export const DevAuthProvider: React.FC<{ children: React.ReactNode }> = ({ child
         id: 'USR_ROVIQ_2024',
         fullName: 'Roviq Fachrudin',
         firstName: 'Roviq',
-        primaryEmailAddress: { emailAddress: 'roviq@ghroviq.com' },
+        username: 'Roviq',
+        primaryEmailAddress: { emailAddress: 'tumbalstu0@gmail.com' },
       }
     : null;
 
@@ -253,8 +254,8 @@ export const AppSignInForm: React.FC = () => {
   const hasClerk = isClerkConfigured();
   const router = useRouter();
   const { loginAsDemoUser } = useContext(DevAuthContext);
-  const [email, setEmail] = useState('roviq@ghroviq.com');
-  const [password, setPassword] = useState('••••••••');
+  const [email, setEmail] = useState('tumbalstu0@gmail.com');
+  const [password, setPassword] = useState('GHroviq123');
 
   if (hasClerk) {
     return (
