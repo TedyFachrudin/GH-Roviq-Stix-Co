@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Search, Plus, Coffee, Sparkles } from 'lucide-react';
-import { PRODUCTS } from '@/lib/products-data';
+import { getStoredProducts, isProductAvailable } from '@/lib/store';
 import { getProductsFromSupabase } from '@/lib/supabase';
 import { CategoryType, Product } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -12,17 +12,31 @@ const CATEGORIES: CategoryType[] = ['Semua', 'Kopi', 'Makanan', 'Camilan', 'Minu
 
 export default function MenuPage() {
   const { addItem, setIsDrawerOpen } = useCart();
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOptions, setSelectedOptions] = useState<Record<string, 'Panas' | 'Dingin'>>({});
 
   React.useEffect(() => {
+    const sync = () => {
+      const stored = getStoredProducts();
+      setProducts(stored);
+    };
+
+    sync();
+    window.addEventListener('gh_products_updated', sync);
+    window.addEventListener('storage', sync);
+
     getProductsFromSupabase().then((data) => {
       if (data && data.length > 0) {
         setProducts(data);
       }
     });
+
+    return () => {
+      window.removeEventListener('gh_products_updated', sync);
+      window.removeEventListener('storage', sync);
+    };
   }, []);
 
   const formatRupiah = (val: number) => {
@@ -106,8 +120,26 @@ export default function MenuPage() {
         </div>
 
         {/* Product Grid matching Menu.svg */}
-        {filteredProducts.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-[#E8E2D9] max-w-md mx-auto p-8 space-y-4">
+        {products.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-3xl border border-[#E8E2D9] max-w-lg mx-auto p-8 sm:p-14 space-y-5 shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-[#F6F0E8] border border-[#E8E2D9] flex items-center justify-center text-[#C2652A] mx-auto shadow-inner">
+              <Coffee size={32} className="stroke-[1.75]" />
+            </div>
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#F6F0E8] text-[#C2652A] text-[10px] font-bold uppercase tracking-widest border border-[#E8E2D9]">
+                <Sparkles size={11} />
+                <span>Katalog Masih Kosong (0 Menu)</span>
+              </span>
+              <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#3A302A]">
+                Belum Ada Menu Terdaftar
+              </h3>
+              <p className="text-xs sm:text-sm text-[#605850] leading-relaxed max-w-md mx-auto font-light">
+                Seluruh daftar menu saat ini masih kosong (0 item). Produk baru akan segera ditambahkan oleh admin melalui portal manajemen katalog.
+              </p>
+            </div>
+          </div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-3xl border border-[#E8E2D9] max-w-md mx-auto p-8 space-y-4 shadow-sm">
             <div className="w-16 h-16 rounded-full bg-[#F6F0E8] flex items-center justify-center text-[#9A9088] mx-auto">
               <Coffee size={28} />
             </div>
@@ -135,11 +167,14 @@ export default function MenuPage() {
               const currentOption =
                 selectedOptions[product.id] ||
                 (product.temperatureOptions ? product.temperatureOptions[0] : undefined);
+              const available = isProductAvailable(product.id);
 
               return (
                 <div
                   key={product.id}
-                  className="group bg-white rounded-2xl border border-[#E8E2D9] overflow-hidden flex flex-col justify-between hover:border-[#C2652A] transition-all hover:shadow-card"
+                  className={`group bg-white rounded-2xl border border-[#E8E2D9] overflow-hidden flex flex-col justify-between transition-all hover:shadow-card ${
+                    available ? 'hover:border-[#C2652A]' : 'opacity-70 grayscale-[20%]'
+                  }`}
                 >
                   {/* Image Container */}
                   <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F6F0E8]">
@@ -150,9 +185,14 @@ export default function MenuPage() {
                       className="object-cover group-hover:scale-105 transition-transform duration-500"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
-                    {product.badge && (
+                    {product.badge && available && (
                       <span className="absolute top-3 left-3 bg-[#FAF5EE]/95 backdrop-blur-sm text-[#C2652A] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-[#D8D0C8] shadow-sm">
                         {product.badge}
+                      </span>
+                    )}
+                    {!available && (
+                      <span className="absolute top-3 left-3 bg-[#3A302A]/90 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/20 shadow-sm">
+                        Stok Habis
                       </span>
                     )}
                   </div>
@@ -208,15 +248,21 @@ export default function MenuPage() {
                       </div>
 
                       <button
+                        disabled={!available}
                         onClick={() => {
+                          if (!available) return;
                           addItem(product, currentOption);
                           setIsDrawerOpen(true);
                         }}
-                        className="py-2 px-3.5 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all"
+                        className={`py-2 px-3.5 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all ${
+                          available
+                            ? 'bg-[#C2652A] hover:bg-[#A95420] text-white active:scale-95'
+                            : 'bg-[#D8D0C8] text-[#9A9088] cursor-not-allowed'
+                        }`}
                         aria-label={`Pesan ${product.name}`}
                       >
                         <Plus size={14} className="stroke-[2.5]" />
-                        <span>Tambah</span>
+                        <span>{available ? 'Tambah' : 'Habis'}</span>
                       </button>
                     </div>
                   </div>

@@ -19,6 +19,7 @@ import { useAppUser } from '@/lib/auth';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { OrderDetails, OrderType, PaymentMethod } from '@/types';
 import { OrderSuccessModal } from '@/components/checkout/OrderSuccessModal';
+import { addGlobalOrder } from '@/lib/store';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -78,6 +79,13 @@ export default function CheckoutPage() {
       status: 'Diproses',
       queueNumber: randomQueue,
     };
+
+    // Store order into global admin live feed
+    try {
+      addGlobalOrder(orderData);
+    } catch (e) {
+      console.error('Failed to add global order:', e);
+    }
 
     // If user is signed in, save order to member history and increment stamps & points
     if (user?.id) {

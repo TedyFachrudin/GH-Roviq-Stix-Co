@@ -1,10 +1,11 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Coffee, Sparkles, Award, Clock, Heart, Plus } from 'lucide-react';
-import { PRODUCTS } from '@/lib/products-data';
+import { Product } from '@/types';
+import { getStoredProducts } from '@/lib/store';
 import { useCart } from '@/context/CartContext';
 import {
   Carousel,
@@ -18,7 +19,26 @@ import {
 
 export default function HomePage() {
   const { addItem, setIsDrawerOpen } = useCart();
-  const featuredProducts = PRODUCTS.slice(0, 8);
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const syncProducts = () => {
+      setProducts(getStoredProducts());
+    };
+    syncProducts();
+
+    window.addEventListener('gh_products_updated', syncProducts);
+    window.addEventListener('storage', syncProducts);
+
+    return () => {
+      window.removeEventListener('gh_products_updated', syncProducts);
+      window.removeEventListener('storage', syncProducts);
+    };
+  }, []);
+
+  const featuredProducts = products.filter((p) => p.badge === 'Terlaris' || p.badge).length > 0
+    ? products.filter((p) => p.badge === 'Terlaris' || p.badge).slice(0, 8)
+    : products.slice(0, 8);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -212,72 +232,101 @@ export default function HomePage() {
           </Link>
         </div>
 
-        <Carousel className="w-full">
-          <CarouselContent className="-ml-4 pb-2">
-            {featuredProducts.map((product) => (
-              <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                <div className="h-full group bg-white rounded-2xl border border-[#E8E2D9] overflow-hidden flex flex-col justify-between hover:border-[#C2652A] transition-all duration-300 hover:shadow-card hover:-translate-y-1">
-                  {/* Product Image */}
-                  <div className="relative aspect-square w-full overflow-hidden bg-[#F6F0E8]">
-                    <Image
-                      src={product.image}
-                      alt={product.name}
-                      fill
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
-                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                    />
-                    {product.badge && (
-                      <span className="absolute top-3 left-3 bg-[#FAF5EE]/90 backdrop-blur-sm text-[#C2652A] text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-[#D8D0C8]">
-                        {product.badge}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                    <div className="space-y-1.5">
-                      <div className="flex items-center justify-between text-xs text-[#9A9088]">
-                        <span>{product.category}</span>
-                        <span>★ {product.rating}</span>
-                      </div>
-                      <h3 className="font-serif text-base font-bold text-[#3A302A] line-clamp-1 group-hover:text-[#C2652A] transition-colors">
-                        {product.name}
-                      </h3>
-                      <p className="text-xs text-[#605850] line-clamp-2 leading-relaxed">
-                        {product.description}
-                      </p>
-                    </div>
-
-                    <div className="pt-3 border-t border-[#F6F0E8] flex items-center justify-between">
-                      <span className="font-semibold text-sm text-[#3A302A]">
-                        {formatRupiah(product.price)}
-                      </span>
-                      <button
-                        onClick={() => {
-                          addItem(product);
-                          setIsDrawerOpen(true);
-                        }}
-                        className="p-2 rounded-lg bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] transition-all flex items-center gap-1.5 text-xs font-medium active:scale-95"
-                        aria-label={`Tambah ${product.name} ke keranjang`}
-                      >
-                        <Plus size={14} />
-                        <span>Pesan</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-
-          <CarouselPrevious />
-          <CarouselNext />
-
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 px-1">
-            <CarouselDots />
-            <CarouselCounter />
+        {featuredProducts.length === 0 ? (
+          <div className="bg-white rounded-3xl border border-[#E8E2D9] p-8 sm:p-14 text-center max-w-2xl mx-auto space-y-5 shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-[#F6F0E8] border border-[#E8E2D9] flex items-center justify-center text-[#C2652A] mx-auto shadow-inner">
+              <Coffee size={28} className="stroke-[1.75]" />
+            </div>
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F6F0E8] border border-[#E8E2D9] text-[#C2652A] text-[10px] font-bold uppercase tracking-widest">
+                <Sparkles size={11} />
+                <span>Katalog Awal 0 Menu</span>
+              </span>
+              <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#3A302A]">
+                Menu Terlaris Masih 0 Data
+              </h3>
+              <p className="text-xs sm:text-sm text-[#605850] max-w-md mx-auto leading-relaxed font-light">
+                Saat ini belum ada produk yang didaftarkan ke menu terlaris. Barista dan dapur kami sedang menyiapkan racikan kopi dan sajian artisan terbaik.
+              </p>
+            </div>
+            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                href="/menu"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#F6F0E8] hover:bg-[#F2ECE4] border border-[#D8D0C8] text-xs font-semibold text-[#3A302A] transition-all"
+              >
+                <span>Buka Halaman Menu</span>
+                <ArrowRight size={14} />
+              </Link>
+            </div>
           </div>
-        </Carousel>
+        ) : (
+          <Carousel className="w-full">
+            <CarouselContent className="-ml-4 pb-2">
+              {featuredProducts.map((product) => (
+                <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
+                  <div className="h-full group bg-white rounded-2xl border border-[#E8E2D9] overflow-hidden flex flex-col justify-between hover:border-[#C2652A] transition-all duration-300 hover:shadow-card hover:-translate-y-1">
+                    {/* Product Image */}
+                    <div className="relative aspect-square w-full overflow-hidden bg-[#F6F0E8]">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                      />
+                      {product.badge && (
+                        <span className="absolute top-3 left-3 bg-[#FAF5EE]/90 backdrop-blur-sm text-[#C2652A] text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-[#D8D0C8]">
+                          {product.badge}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
+                      <div className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs text-[#9A9088]">
+                          <span>{product.category}</span>
+                          <span>★ {product.rating || 4.9}</span>
+                        </div>
+                        <h3 className="font-serif text-base font-bold text-[#3A302A] line-clamp-1 group-hover:text-[#C2652A] transition-colors">
+                          {product.name}
+                        </h3>
+                        <p className="text-xs text-[#605850] line-clamp-2 leading-relaxed">
+                          {product.description}
+                        </p>
+                      </div>
+
+                      <div className="pt-3 border-t border-[#F6F0E8] flex items-center justify-between">
+                        <span className="font-semibold text-sm text-[#3A302A]">
+                          {formatRupiah(product.price)}
+                        </span>
+                        <button
+                          onClick={() => {
+                            addItem(product);
+                            setIsDrawerOpen(true);
+                          }}
+                          className="p-2 rounded-lg bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] transition-all flex items-center gap-1.5 text-xs font-medium active:scale-95"
+                          aria-label={`Tambah ${product.name} ke keranjang`}
+                        >
+                          <Plus size={14} />
+                          <span>Pesan</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </CarouselItem>
+              ))}
+            </CarouselContent>
+
+            <CarouselPrevious />
+            <CarouselNext />
+
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 px-1">
+              <CarouselDots />
+              <CarouselCounter />
+            </div>
+          </Carousel>
+        )}
       </section>
 
       {/* Member & Digital Loyalty Promo Banner */}

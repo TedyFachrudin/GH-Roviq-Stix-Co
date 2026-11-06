@@ -50,6 +50,12 @@ export const Footer: React.FC = () => {
                   Pesanan Saya
                 </Link>
               </li>
+              <li className="pt-2 border-t border-[#E8E2D9]/60">
+                <Link href="/admin/login" className="text-xs text-[#9A9088] hover:text-[#C2652A] transition-colors flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#C2652A]"></span>
+                  <span>Portal Admin</span>
+                </Link>
+              </li>
             </ul>
           </div>
 
