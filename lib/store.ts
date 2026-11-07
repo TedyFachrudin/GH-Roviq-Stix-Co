@@ -213,6 +213,36 @@ export function setProductAvailability(id: string, available: boolean): void {
    ORDERS MANAGEMENT (Real-Time)
    ========================================================= */
 
+const QUEUE_COUNTER_KEY = 'gh_roviq_queue_counter_v1';
+
+/**
+ * Returns sequential queue number starting from #GH-01, #GH-02, ...
+ */
+export function getNextQueueNumber(): string {
+  if (typeof window === 'undefined') return '#GH-01';
+  try {
+    const raw = localStorage.getItem(QUEUE_COUNTER_KEY);
+    const count = raw ? Number(raw) + 1 : 1;
+    localStorage.setItem(QUEUE_COUNTER_KEY, String(count));
+    return `#GH-${String(count).padStart(2, '0')}`;
+  } catch {
+    const orders = getStoredOrders();
+    return `#GH-${String(orders.length + 1).padStart(2, '0')}`;
+  }
+}
+
+/**
+ * Updates order with uploaded payment proof
+ */
+export function updateOrderPaymentProof(orderId: string, proof: string): void {
+  const current = getStoredOrders();
+  const index = current.findIndex((o) => o.id === orderId);
+  if (index !== -1) {
+    current[index].paymentProof = proof;
+    saveStoredOrders([...current]);
+  }
+}
+
 /**
  * Retrieves all incoming and past orders from global storage
  */

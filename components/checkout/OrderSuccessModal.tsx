@@ -1,9 +1,21 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Coffee, Clock, Receipt, Award } from 'lucide-react';
+import Image from 'next/image';
+import {
+  Coffee,
+  Clock,
+  Receipt,
+  Award,
+  Upload,
+  CheckCircle2,
+  Check,
+  QrCode,
+} from 'lucide-react';
 import { OrderDetails } from '@/types';
+import { useAppUser } from '@/lib/auth';
+import { updateOrderPaymentProof } from '@/lib/store';
 
 interface OrderSuccessModalProps {
   order: OrderDetails | null;
@@ -11,7 +23,13 @@ interface OrderSuccessModalProps {
 }
 
 export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onClose }) => {
+  const { isSignedIn } = useAppUser();
+  const [paymentProof, setPaymentProof] = useState<string>('');
+  const [showNotificationToast, setShowNotificationToast] = useState(false);
+
   if (!order) return null;
+
+  const isQris = order.paymentMethod === 'QRIS';
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -21,46 +39,165 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
     }).format(val);
   };
 
+  const handleProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Ukuran file maksimal 5MB. Silakan pilih foto bukti lain.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result as string;
+      if (base64) {
+        setPaymentProof(base64);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleKirimBukti = () => {
+    if (paymentProof) {
+      updateOrderPaymentProof(order.id, paymentProof);
+    }
+    // 8. Tampilkan popout kecil pemberitahuan: "pesanan berhasil dikirim dan dibuat, mohon tunggu"
+    setShowNotificationToast(true);
+  };
+
+  const handleFinalDone = () => {
+    setShowNotificationToast(false);
+    onClose();
+  };
+
+  // 8. Popout kecil pemberitahuan dengan animasi ceklis
+  if (showNotificationToast) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="bg-[#FAF5EE] border border-[#D8D0C8] rounded-3xl p-6 sm:p-8 max-w-sm w-full shadow-2xl text-center space-y-4 animate-in zoom-in-95 duration-200"
+          role="dialog"
+          aria-modal="true"
+        >
+          {/* Animasi Ceklis */}
+          <div className="w-16 h-16 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-600 flex items-center justify-center mx-auto shadow-inner animate-bounce">
+            <Check size={36} className="stroke-[3]" />
+          </div>
+
+          <div className="space-y-1.5">
+            <h4 className="font-serif text-xl font-bold text-[#3A302A]">
+              Pesanan Berhasil Dikirim dan Dibuat
+            </h4>
+            <p className="text-xs text-[#605850] font-sans leading-relaxed">
+              Mohon tunggu, barista GH ROVIQ sedang menyiapkan pesanan kurasi terbaik untuk Anda.
+            </p>
+          </div>
+
+          <div className="p-3 rounded-xl bg-[#F6F0E8] border border-[#E8E2D9] flex items-center justify-between text-xs">
+            <span className="text-[#9A9088] uppercase tracking-wider font-semibold text-[10px]">
+              Nomor Antrean
+            </span>
+            <span className="font-serif font-bold text-lg text-[#C2652A]">
+              {order.queueNumber}
+            </span>
+          </div>
+
+          <div className="pt-2">
+            <button
+              type="button"
+              onClick={handleFinalDone}
+              className="w-full py-3 px-4 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs uppercase tracking-wider font-semibold transition-all shadow-md active:scale-95"
+            >
+              Kembali ke Menu
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3A302A]/50 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#3A302A]/60 backdrop-blur-sm animate-in fade-in duration-200 overflow-y-auto">
       <div
-        className="bg-[#FAF5EE] border border-[#D8D0C8] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-dropdown space-y-6 animate-in zoom-in-95 duration-200"
+        className="bg-[#FAF5EE] border border-[#D8D0C8] rounded-2xl p-6 sm:p-8 max-w-lg w-full shadow-dropdown space-y-5 animate-in zoom-in-95 duration-200 my-auto max-h-[92vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
       >
-        {/* Success check badge */}
-        <div className="text-center space-y-3">
-          <div className="w-16 h-16 rounded-full bg-[#F7ECE4] text-[#C2652A] flex items-center justify-center mx-auto shadow-inner">
-            <CheckCircle2 size={36} className="stroke-[2.2]" />
+        {/* 2. Header: Judul "Menunggu Pembayaran" untuk QRIS */}
+        <div className="text-center space-y-2">
+          <div className="w-14 h-14 rounded-full bg-[#F7ECE4] text-[#C2652A] flex items-center justify-center mx-auto shadow-inner">
+            {isQris ? (
+              <Clock size={30} className="stroke-[2.2] animate-pulse" />
+            ) : (
+              <CheckCircle2 size={32} className="stroke-[2.2]" />
+            )}
           </div>
           <div>
             <h3 className="font-serif text-2xl font-bold text-[#3A302A]">
-              Pesanan Berhasil Diterima!
+              {isQris ? 'Menunggu Pembayaran' : 'Pesanan Berhasil Diterima!'}
             </h3>
-            <p className="text-sm text-[#605850] mt-1 font-sans">
-              Barista kami sedang menyiapkan pesanan kurasi terbaik untuk Anda.
+            <p className="text-xs sm:text-sm text-[#605850] mt-1 font-sans">
+              {isQris
+                ? 'Silakan scan kode QRIS resmi GH ROVIQ di bawah ini untuk menyelesaikan transaksi.'
+                : 'Barista kami sedang menyiapkan pesanan kurasi terbaik untuk Anda.'}
             </p>
           </div>
         </div>
 
+        {/* 1. Menampilkan Gambar QRIS Resmi jika metode pembayaran QRIS */}
+        {isQris && (
+          <div className="bg-white border border-[#E8E2D9] rounded-2xl p-4 text-center space-y-3 shadow-2xs">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FAF5EE] border border-[#D8D0C8] text-[#C2652A] text-[10px] font-bold uppercase tracking-wider">
+              <QrCode size={13} />
+              <span>QRIS Resmi GH ROVIQ</span>
+            </div>
+
+            <div className="relative w-full max-w-[240px] aspect-[3/4] mx-auto rounded-xl overflow-hidden border border-[#E8E2D9] shadow-inner bg-white">
+              <Image
+                src="/qris-gh-roviq.jpg"
+                alt="QRIS GH ROVIQ STIX & CO"
+                fill
+                className="object-contain p-2"
+                priority
+              />
+            </div>
+
+            <div className="text-center space-y-0.5">
+              <p className="text-xs font-bold text-[#3A302A]">GH ROVIQ STIX & CO. - FOOD</p>
+              <p className="text-[10px] text-[#9A9088] font-mono">NMID: ID1026630124554 • A01</p>
+              <p className="text-[10px] text-[#605850] pt-1">
+                BCA, Mandiri, BRI, BNI, GoPay, OVO, ShopeePay, Dana, LinkAja
+              </p>
+            </div>
+          </div>
+        )}
+
         {/* Order Details Card */}
         <div className="bg-white border border-[#E8E2D9] rounded-xl p-5 space-y-4">
+          {/* Top row: 3. No Antrian dimulai dari #GH-01 & 4. HAPUS ID Pesanan */}
           <div className="flex items-center justify-between pb-3 border-b border-[#F6F0E8]">
             <div>
               <span className="text-[11px] text-[#9A9088] uppercase tracking-wider font-semibold">
                 Nomor Antrean
               </span>
-              <div className="font-serif text-2xl font-bold text-[#C2652A]">
+              <div className="font-serif text-3xl font-bold text-[#C2652A]">
                 {order.queueNumber}
               </div>
             </div>
             <div className="text-right">
-              <span className="text-[11px] text-[#9A9088] uppercase tracking-wider font-semibold">
-                ID Pesanan
+              <span className="text-[11px] text-[#9A9088] uppercase tracking-wider font-semibold block">
+                Status Pesanan
               </span>
-              <div className="font-mono text-sm font-semibold text-[#3A302A]">
-                {order.id}
-              </div>
+              <span
+                className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
+                  isQris
+                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                    : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                }`}
+              >
+                {isQris ? 'Menunggu Bayar' : 'Diproses'}
+              </span>
             </div>
           </div>
 
@@ -87,39 +224,120 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
             </div>
             <div className="space-y-1">
               <span className="text-[#9A9088]">Total Pembayaran</span>
-              <p className="font-bold text-[#C2652A] text-sm">
+              <p className="font-bold text-[#C2652A] text-base">
                 {formatRupiah(order.total)}
               </p>
             </div>
           </div>
 
-          {/* Loyalty Stamp Reward Announcement */}
-          <div className="bg-[#FAF5EE] rounded-lg p-3 border border-[#E8E2D9] flex items-center gap-3 text-xs text-[#3A302A]">
-            <Award size={20} className="text-[#C2652A] flex-shrink-0" />
-            <div>
-              <span className="font-bold text-[#C2652A]">+1 Stamp Loyalty</span> berhasil ditambahkan ke kartu member digital Anda!
+          {/* 5. Hapus +1 Stamp Loyalty apabila di aktornya tamu (hanya jika member login) */}
+          {isSignedIn && (
+            <div className="bg-[#FAF5EE] rounded-lg p-3 border border-[#E8E2D9] flex items-center gap-3 text-xs text-[#3A302A]">
+              <Award size={20} className="text-[#C2652A] flex-shrink-0" />
+              <div>
+                <span className="font-bold text-[#C2652A]">+1 Stamp Loyalty</span> berhasil ditambahkan ke kartu member digital Anda!
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
-        {/* Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <Link
-            href="/profil"
-            onClick={onClose}
-            className="flex-1 py-3 px-4 rounded-xl border border-[#D8D0C8] bg-transparent text-[#3A302A] text-xs uppercase tracking-wider font-semibold text-center hover:bg-[#F6F0E8] transition-colors"
-          >
-            Cek Kartu Stamp
-          </Link>
-          <button
-            onClick={onClose}
-            className="flex-1 py-3 px-4 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs uppercase tracking-wider font-semibold text-center shadow-sm transition-colors"
-          >
-            Pesan Menu Lain
-          </button>
-        </div>
+        {/* 6. Form Upload Bukti Pembayaran QRIS (Opsional) */}
+        {isQris && (
+          <div className="space-y-2 text-left bg-white border border-[#E8E2D9] rounded-xl p-4">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-[#3A302A]">
+                Bukti Pembayaran (Opsional)
+              </span>
+              {paymentProof && (
+                <span className="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
+                  <Check size={13} /> Terlampir
+                </span>
+              )}
+            </div>
+
+            {paymentProof ? (
+              <div className="relative w-full h-32 rounded-xl overflow-hidden border border-[#D8D0C8] bg-[#FAF5EE] group">
+                <img
+                  src={paymentProof}
+                  alt="Bukti pembayaran"
+                  className="w-full h-full object-contain"
+                />
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                  <label className="px-3 py-1.5 rounded-lg bg-white text-xs font-semibold text-[#3A302A] cursor-pointer shadow-sm hover:bg-[#FAF5EE]">
+                    Ganti
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProofUpload}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentProof('')}
+                    className="px-3 py-1.5 rounded-lg bg-red-600 text-xs font-semibold text-white shadow-sm hover:bg-red-700"
+                  >
+                    Hapus
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label className="border-2 border-dashed border-[#D8D0C8] hover:border-[#C2652A] rounded-xl p-3.5 flex items-center justify-center gap-2.5 cursor-pointer bg-[#FAF5EE] hover:bg-white transition-all text-xs text-[#605850] group">
+                <Upload size={16} className="text-[#C2652A]" />
+                <span className="group-hover:text-[#C2652A] font-medium">
+                  Upload foto bukti screenshot QRIS
+                </span>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleProofUpload}
+                  className="hidden"
+                />
+              </label>
+            )}
+          </div>
+        )}
+
+        {/* 7. Action Button: diganti menjadi kirim bukti pembayaran */}
+        {isQris ? (
+          <div className="space-y-2">
+            <button
+              type="button"
+              onClick={handleKirimBukti}
+              className="w-full py-3.5 px-4 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs uppercase tracking-wider font-bold text-center shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+            >
+              <CheckCircle2 size={16} />
+              <span>Kirim Bukti Pembayaran</span>
+            </button>
+            <button
+              type="button"
+              onClick={handleKirimBukti}
+              className="w-full text-center text-xs text-[#9A9088] hover:text-[#3A302A] transition-colors py-1"
+            >
+              Selesaikan & Konfirmasi Pesanan
+            </button>
+          </div>
+        ) : (
+          <div className="flex flex-col sm:flex-row gap-3">
+            {isSignedIn && (
+              <Link
+                href="/profil"
+                onClick={onClose}
+                className="flex-1 py-3 px-4 rounded-xl border border-[#D8D0C8] bg-transparent text-[#3A302A] text-xs uppercase tracking-wider font-semibold text-center hover:bg-[#F6F0E8] transition-colors"
+              >
+                Cek Kartu Stamp
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={handleKirimBukti}
+              className="flex-1 py-3 px-4 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs uppercase tracking-wider font-semibold text-center shadow-sm transition-colors"
+            >
+              Pesan Menu Lain
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 };
-

@@ -19,7 +19,7 @@ import { useAppUser } from '@/lib/auth';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { OrderDetails, OrderType, PaymentMethod } from '@/types';
 import { OrderSuccessModal } from '@/components/checkout/OrderSuccessModal';
-import { addGlobalOrder } from '@/lib/store';
+import { addGlobalOrder, getNextQueueNumber } from '@/lib/store';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -57,13 +57,10 @@ export default function CheckoutPage() {
 
     setIsSubmitting(true);
 
-    // Generate minimalist order ID & Queue Number
+    // Generate order ID & sequential Queue Number (#GH-01, #GH-02, ...)
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const orderId = `GHR-${randomNum}`;
-    const queueLetters = ['A', 'B', 'C'];
-    const randomQueue = `#${queueLetters[Math.floor(Math.random() * queueLetters.length)]}-${Math.floor(
-      10 + Math.random() * 90
-    )}`;
+    const queueNumber = getNextQueueNumber();
 
     const orderData: OrderDetails = {
       id: orderId,
@@ -76,8 +73,8 @@ export default function CheckoutPage() {
       tax,
       total: grandTotal,
       createdAt: new Date().toISOString(),
-      status: 'Diproses',
-      queueNumber: randomQueue,
+      status: paymentMethod === 'QRIS' ? 'Menunggu' : 'Diproses',
+      queueNumber,
     };
 
     // Store order into global admin live feed
@@ -126,8 +123,8 @@ export default function CheckoutPage() {
             subtotal,
             tax,
             total: grandTotal,
-            queue_number: randomQueue,
-            status: 'Diproses',
+            queue_number: queueNumber,
+            status: paymentMethod === 'QRIS' ? 'Menunggu' : 'Diproses',
           });
 
           const itemsToInsert = items.map((i) => ({

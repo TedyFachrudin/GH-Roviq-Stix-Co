@@ -37,6 +37,7 @@ export interface OrderDetails {
   createdAt: string;
   status: 'Menunggu' | 'Diproses' | 'Selesai';
   queueNumber: string;
+  paymentProof?: string;
 }
 
 export interface MemberProfile {
