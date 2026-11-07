@@ -47,7 +47,9 @@ export function getMemberQueueId(userId?: string | null, isGuest: boolean = fals
  * Used by the Admin to view and manage members.
  */
 export async function fetchMembersFromCloud(): Promise<ExtendedMemberProfile[]> {
-  const localList = getLocalCachedMembers();
+  const localList = getLocalCachedMembers().filter(
+    (m) => !m.id.startsWith('SYSTEM') && m.name !== '__DELETED__' && m.email !== 'tumbalstu0@gmail.com'
+  );
 
   if (!isSupabaseConfigured()) {
     return localList;
@@ -65,7 +67,16 @@ export async function fetchMembersFromCloud(): Promise<ExtendedMemberProfile[]> 
       return localList;
     }
 
-    const mapped: ExtendedMemberProfile[] = data.map((row) => {
+    const filteredRows = data.filter(
+      (row) =>
+        row.member_id &&
+        !row.member_id.startsWith('SYSTEM') &&
+        row.name !== '__DELETED__' &&
+        row.email !== 'tumbalstu0@gmail.com' &&
+        row.email !== 'deleted@system.local'
+    );
+
+    const mapped: ExtendedMemberProfile[] = filteredRows.map((row) => {
       const stamps = Math.max(0, Math.min(10, Number(row.stamps) || 0));
       return {
         id: String(row.member_id || 'GH-001'),
@@ -176,6 +187,19 @@ export async function adminDeleteMember(memberId: string, clerkId?: string | nul
 
   if (isSupabaseConfigured()) {
     try {
+      const deletedId = `SYSTEM-DELETED-${Date.now()}`;
+      if (clerkId) {
+        await supabase
+          .from('members')
+          .update({ member_id: deletedId, name: '__DELETED__', email: 'deleted@system.local' })
+          .or(`member_id.eq.${memberId},clerk_id.eq.${clerkId}`);
+      } else {
+        await supabase
+          .from('members')
+          .update({ member_id: deletedId, name: '__DELETED__', email: 'deleted@system.local' })
+          .eq('member_id', memberId);
+      }
+
       let query = supabase.from('members').delete();
       if (clerkId) {
         query = query.or(`member_id.eq.${memberId},clerk_id.eq.${clerkId}`);
@@ -207,11 +231,17 @@ export async function syncCurrentMember(user: any): Promise<{
     return { memberId: 'GH-000', stamps: 0, points: 0, tier: 'Regular' };
   }
 
-  const generatedId = getMemberQueueId(user.id, false);
   const email =
     user?.primaryEmailAddress?.emailAddress ||
     user?.email ||
     'member@ghroviq.com';
+
+  // Do not register admin as a customer member
+  if (email.toLowerCase() === 'tumbalstu0@gmail.com') {
+    return { memberId: 'GH-000', stamps: 0, points: 0, tier: 'Regular' };
+  }
+
+  const generatedId = getMemberQueueId(user.id, false);
   const name =
     user?.username ||
     user?.fullName ||

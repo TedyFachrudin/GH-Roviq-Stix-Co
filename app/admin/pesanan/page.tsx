@@ -16,6 +16,7 @@ import {
   Trash2,
   ChevronLeftIcon,
   ChevronRightIcon,
+  User as UserIcon,
 } from 'lucide-react';
 import {
   Pagination,
@@ -23,6 +24,7 @@ import {
   PaginationItem,
   PaginationLink,
 } from '@/components/ui/pagination';
+import { Avatar, AvatarFallback, AvatarImage, CustomBadge } from '@/components/ui/avatar';
 import { OrderDetails } from '@/types';
 import {
   getStoredOrders,
@@ -124,6 +126,13 @@ export default function AdminPesananPage() {
       currency: 'IDR',
       maximumFractionDigits: 0,
     }).format(val);
+  };
+
+  const getInitials = (name: string): string => {
+    if (!name) return 'GH';
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
 
   // Metrics
@@ -342,6 +351,10 @@ export default function AdminPesananPage() {
               const isWaiting = order.status === 'Menunggu';
               const isProcessing = order.status === 'Diproses';
               const isCompleted = order.status === 'Selesai';
+              const isGuest =
+                !order.customerName ||
+                order.customerName.toLowerCase().startsWith('tamu') ||
+                order.customerName.toLowerCase().includes('guest');
 
               return (
                 <div
@@ -351,12 +364,30 @@ export default function AdminPesananPage() {
                   {/* Card Header matching SVG (x:344, y:487, w:875, h:72, fill: white) */}
                   <div className="p-4 sm:p-5 rounded-2xl bg-white border border-[#E8E2D9] flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-2xs">
                     
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-3.5">
                       {/* Queue Number Box */}
                       <div className="w-14 h-14 rounded-xl bg-[#3A302A] text-white flex flex-col items-center justify-center font-bold shrink-0 shadow-xs">
                         <span className="text-[9px] uppercase tracking-wider text-[#D8D0C8]">Antrean</span>
                         <span className="font-mono text-base text-[#FAF5EE]">{order.queueNumber || '#A-01'}</span>
                       </div>
+
+                      {/* Customer Profile Avatar (Tamu vs Member) */}
+                      {isGuest ? (
+                        <Avatar size="default" className="shrink-0">
+                          <AvatarFallback className="bg-[#F6F0E8] border border-[#E8E2D9] text-[#605850]">
+                            <UserIcon className="size-4" aria-hidden="true" />
+                          </AvatarFallback>
+                        </Avatar>
+                      ) : (
+                        <Avatar size="default" className="relative shrink-0">
+                          <AvatarFallback className="bg-[#F6F0E8] border border-[#E8E2D9] text-[#C2652A] font-bold text-xs">
+                            {getInitials(order.customerName)}
+                          </AvatarFallback>
+                          <span className="absolute -bottom-0.5 -right-0.5">
+                            <CustomBadge className="size-3.5" />
+                          </span>
+                        </Avatar>
+                      )}
 
                       <div className="space-y-1">
                         <div className="flex items-center gap-2">
@@ -366,6 +397,11 @@ export default function AdminPesananPage() {
                           <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#FAF5EE] text-[#605850] border border-[#E8E2D9]">
                             {order.orderType} {order.tableNumber ? `(Meja ${order.tableNumber})` : ''}
                           </span>
+                          {!isGuest && (
+                            <span className="text-[9px] font-bold px-1.5 py-0.5 rounded bg-[#FAF5EE] text-[#C2652A] border border-[#E8E2D9]">
+                              Member
+                            </span>
+                          )}
                         </div>
 
                         <h3 className="font-serif text-base font-bold text-[#3A302A]">

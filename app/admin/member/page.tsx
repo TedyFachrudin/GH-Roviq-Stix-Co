@@ -35,6 +35,14 @@ import {
   PaginationItem,
   PaginationLink,
 } from '@/components/ui/pagination';
+import { Avatar, AvatarFallback, AvatarImage, CustomBadge } from '@/components/ui/avatar';
+
+function getInitials(name: string): string {
+  if (!name) return 'GH';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export default function AdminMemberPage() {
   const router = useRouter();
@@ -44,7 +52,6 @@ export default function AdminMemberPage() {
   const [isFetching, setIsFetching] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTier, setSelectedTier] = useState<string>('Semua');
   const [savingId, setSavingId] = useState<string | null>(null);
   const [toastMsg, setToastMsg] = useState<string | null>(null);
 
@@ -233,6 +240,15 @@ export default function AdminMemberPage() {
   const filteredMembers = useMemo(() => {
     const q = (searchQuery || '').trim().toLowerCase();
     return members.filter((m) => {
+      if (
+        !m ||
+        m.id.startsWith('SYSTEM') ||
+        m.name === '__DELETED__' ||
+        m.email === 'tumbalstu0@gmail.com' ||
+        m.email === 'deleted@system.local'
+      ) {
+        return false;
+      }
       const matchSearch =
         !q ||
         m.name.toLowerCase().includes(q) ||
@@ -240,18 +256,16 @@ export default function AdminMemberPage() {
         m.email.toLowerCase().includes(q) ||
         m.phone.toLowerCase().includes(q);
 
-      const matchTier = selectedTier === 'Semua' || m.tier === selectedTier;
-
-      return matchSearch && matchTier;
+      return matchSearch;
     });
-  }, [members, searchQuery, selectedTier]);
+  }, [members, searchQuery]);
 
   // Pagination (10 members per page)
   const ITEMS_PER_PAGE = 10;
   const [currentPage, setCurrentPage] = useState(1);
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchQuery, selectedTier]);
+  }, [searchQuery]);
 
   const totalPages = Math.ceil(filteredMembers.length / ITEMS_PER_PAGE) || 1;
   const paginatedMembers = useMemo(() => {
@@ -368,16 +382,15 @@ export default function AdminMemberPage() {
               {eligibleRewardCount}
             </div>
             <div className="text-xs text-[#605850] space-y-0.5">
-              <p className="font-semibold text-[#3A302A]">Mencapai 10 Stamp (Gold)</p>
+              <p className="font-semibold text-[#3A302A]">Mencapai 10 Stamp</p>
               <p className="text-[11px] text-[#9A9088]">Berhak atas 1 Kopi Artisan Gratis</p>
             </div>
           </div>
         </div>
 
-        {/* Search & Filter Bar */}
-        <div className="p-4 rounded-2xl bg-white border border-[#E8E2D9] shadow-xs flex flex-col sm:flex-row items-center justify-between gap-4">
-          {/* Search Bar */}
-          <div className="relative w-full sm:w-80">
+        {/* Search Bar */}
+        <div className="p-4 rounded-2xl bg-white border border-[#E8E2D9] shadow-xs flex items-center justify-between gap-4">
+          <div className="relative w-full max-w-md">
             <Search
               size={15}
               className="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9A9088]"
@@ -389,24 +402,6 @@ export default function AdminMemberPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 rounded-xl bg-[#FAF5EE] border border-[#D8D0C8] text-xs text-[#3A302A] placeholder-[#9A9088] focus:outline-none focus:border-[#C2652A]"
             />
-          </div>
-
-          {/* Filter Tier Tabs */}
-          <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
-            {['Semua', 'Artisan Club', 'Gold'].map((tier) => (
-              <button
-                key={tier}
-                type="button"
-                onClick={() => setSelectedTier(tier)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all cursor-pointer whitespace-nowrap ${
-                  selectedTier === tier
-                    ? 'bg-[#3A302A] text-white shadow-2xs'
-                    : 'bg-[#FAF5EE] text-[#605850] hover:text-[#3A302A] hover:bg-[#F2ECE4]'
-                }`}
-              >
-                {tier}
-              </button>
-            ))}
           </div>
         </div>
 
@@ -441,7 +436,6 @@ export default function AdminMemberPage() {
                     : member.stamps;
                 const hasChanges = currentDraft !== member.stamps;
                 const isSaving = savingId === member.id;
-                const isGold = member.tier === 'Gold' || member.stamps >= 10;
 
                 return (
                   <div
@@ -451,22 +445,21 @@ export default function AdminMemberPage() {
                     {/* Top Row: Identity & Status */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#F6F0E8]">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-11 h-11 rounded-xl bg-[#F6F0E8] border border-[#E8E2D9] flex items-center justify-center font-mono font-bold text-sm text-[#C2652A] shrink-0">
-                          {member.id}
-                        </div>
+                        <Avatar size="lg" className="relative shrink-0">
+                          <AvatarFallback className="bg-[#F6F0E8] border border-[#E8E2D9] text-[#C2652A] font-bold text-sm">
+                            {getInitials(member.name)}
+                          </AvatarFallback>
+                          <span className="absolute -bottom-0.5 -right-0.5">
+                            <CustomBadge />
+                          </span>
+                        </Avatar>
                         <div>
                           <div className="flex items-center gap-2">
                             <h3 className="font-serif text-base font-bold text-[#3A302A]">
                               {member.name}
                             </h3>
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${
-                                isGold
-                                  ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                                  : 'bg-[#F6F0E8] text-[#C2652A] border border-[#E8E2D9]'
-                              }`}
-                            >
-                              {member.tier}
+                            <span className="text-[11px] font-mono font-bold text-[#C2652A] px-2 py-0.5 rounded-md bg-[#FAF5EE] border border-[#E8E2D9]">
+                              {member.id}
                             </span>
                           </div>
                           <p className="text-xs text-[#9A9088]">

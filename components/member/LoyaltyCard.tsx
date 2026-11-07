@@ -34,11 +34,11 @@ export const LoyaltyCard: React.FC<LoyaltyCardProps> = ({ member }) => {
                 GH ROVIQ
               </span>
               <span className="text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full bg-[#C2652A] text-white font-semibold">
-                {member.tier}
+                Member Digital
               </span>
             </div>
             <p className="text-xs text-[#D8D0C8] font-sans mt-0.5 tracking-wide">
-              Artisan Club Loyalty Pass
+              Kartu Loyalitas Digital GH ROVIQ
             </p>
           </div>
 

@@ -21,6 +21,14 @@ import { LoyaltyCard } from '@/components/member/LoyaltyCard';
 import { getMemberQueueId, syncCurrentMember } from '@/lib/member';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { MemberProfile } from '@/types';
+import { Avatar, AvatarFallback, AvatarImage, CustomBadge } from '@/components/ui/avatar';
+
+function getInitials(name: string): string {
+  if (!name) return 'GH';
+  const parts = name.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -162,20 +170,30 @@ export default function ProfilePage() {
               
               {/* Header info */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-[#E8E2D9]">
-                <div>
-                  <span className="text-xs font-semibold text-[#C2652A] uppercase tracking-widest">
-                    Profil Anggota
-                  </span>
-                  <h1 className="font-serif text-3xl sm:text-4xl font-bold text-[#3A302A] mt-1">
-                    Selamat Datang, {memberName}
-                  </h1>
-                  <p className="text-sm text-[#605850] mt-0.5">
-                    Anggota sejak {memberData.joinDate} • Status Aktif
-                  </p>
+                <div className="flex items-center gap-4">
+                  <Avatar size="xl" className="relative shrink-0">
+                    <AvatarFallback className="bg-[#F6F0E8] border border-[#E8E2D9] text-[#C2652A] font-bold text-lg">
+                      {getInitials(memberName)}
+                    </AvatarFallback>
+                    <span className="absolute -bottom-0.5 -right-0.5">
+                      <CustomBadge className="size-5" />
+                    </span>
+                  </Avatar>
+                  <div>
+                    <span className="text-xs font-semibold text-[#C2652A] uppercase tracking-widest">
+                      Profil Anggota Member
+                    </span>
+                    <h1 className="font-serif text-2xl sm:text-3xl font-bold text-[#3A302A] mt-0.5">
+                      Selamat Datang, {memberName}
+                    </h1>
+                    <p className="text-xs text-[#605850] mt-0.5">
+                      ID: {memberId} • Anggota sejak {memberData.joinDate}
+                    </p>
+                  </div>
                 </div>
 
                 <AppSignOutButton>
-                  <button className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#D8D0C8] hover:bg-[#F6F0E8] text-xs font-semibold uppercase tracking-wider text-[#605850] transition-colors">
+                  <button className="self-start sm:self-auto inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-[#D8D0C8] hover:bg-[#F6F0E8] text-xs font-semibold uppercase tracking-wider text-[#605850] transition-colors cursor-pointer">
                     <LogOut size={14} />
                     <span>Keluar</span>
                   </button>
