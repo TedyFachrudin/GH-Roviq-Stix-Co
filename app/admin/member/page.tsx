@@ -292,7 +292,7 @@ export default function AdminMemberPage() {
       <AdminSidebar />
 
       {/* Main Content Area */}
-      <main className="flex-1 p-6 sm:p-10 max-w-6xl space-y-8">
+      <main className="flex-1 p-4 sm:p-10 max-w-6xl space-y-8 pb-24 lg:pb-10">
         
         {/* Toast Notifikasi Sukses */}
         {toastMsg && (
@@ -506,8 +506,8 @@ export default function AdminMemberPage() {
                         )}
                       </div>
 
-                      {/* 10 Visual Stamp Dots matching Member Card */}
-                      <div className="grid grid-cols-10 gap-1.5 sm:gap-2.5 p-3 rounded-xl bg-[#FAF5EE] border border-[#E8E2D9]">
+                      {/* 10 Visual Stamp Dots matching Member Card: 5+5 di HP, 10 di Desktop */}
+                      <div className="grid grid-cols-5 sm:grid-cols-10 gap-1.5 sm:gap-2.5 p-3 rounded-xl bg-[#FAF5EE] border border-[#E8E2D9]">
                         {Array.from({ length: 10 }, (_, i) => i + 1).map((stampNum) => {
                           const isCollected = stampNum <= member.stamps;
                           return (

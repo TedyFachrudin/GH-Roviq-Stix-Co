@@ -10,8 +10,6 @@ import { useCart } from '@/context/CartContext';
 import { useAdminAuth } from '@/lib/admin';
 import { EditProductModal } from '@/components/admin/EditProductModal';
 
-const CATEGORIES: CategoryType[] = ['Semua', 'Kopi', 'Makanan', 'Camilan', 'Minuman'];
-
 export default function MenuPage() {
   const { addItem, setIsDrawerOpen } = useCart();
   const { isAdmin } = useAdminAuth();
@@ -21,6 +19,12 @@ export default function MenuPage() {
   const [selectedOptions, setSelectedOptions] = useState<Record<string, 'Panas' | 'Dingin'>>({});
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+
+  // Dynamic categories from catalog products
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(products.map((p) => p.category?.trim()).filter(Boolean)));
+    return ['Semua', ...cats];
+  }, [products]);
 
   React.useEffect(() => {
     const sync = () => {
@@ -101,7 +105,7 @@ export default function MenuPage() {
   }, [products, selectedCategory, searchQuery]);
 
   return (
-    <div className="py-10 sm:py-16">
+    <div className="py-10 sm:py-16 pb-24 md:pb-16">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
         
         {/* Header matching Menu.svg */}
@@ -138,7 +142,7 @@ export default function MenuPage() {
 
           {/* Category Tabs */}
           <div className="flex items-center justify-center gap-2 overflow-x-auto pb-2 scrollbar-none">
-            {CATEGORIES.map((cat) => {
+            {categories.map((cat) => {
               const isSelected = selectedCategory === cat;
               return (
                 <button

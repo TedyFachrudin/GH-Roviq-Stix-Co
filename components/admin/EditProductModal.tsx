@@ -8,6 +8,7 @@ import {
   updateProduct,
   isProductAvailable,
   setProductAvailability,
+  getStoredProducts,
 } from '@/lib/store';
 
 interface EditProductModalProps {
@@ -25,7 +26,7 @@ export function EditProductModal({
 }: EditProductModalProps) {
   const [formData, setFormData] = useState({
     name: '',
-    category: 'Kopi' as CategoryType,
+    category: '' as CategoryType,
     price: '' as string | number,
     description: '',
     image: '',
@@ -35,12 +36,18 @@ export function EditProductModal({
     isAvailable: true,
   });
 
+  const existingCategories = React.useMemo(() => {
+    return Array.from(
+      new Set(getStoredProducts().map((p) => p.category?.trim()).filter(Boolean))
+    );
+  }, [isOpen]);
+
   useEffect(() => {
     if (isOpen) {
       if (product) {
         setFormData({
           name: product.name || '',
-          category: product.category || 'Kopi',
+          category: product.category || '',
           price: product.price ?? '',
           description: product.description || '',
           image: product.image || '',
@@ -52,7 +59,7 @@ export function EditProductModal({
       } else {
         setFormData({
           name: '',
-          category: 'Kopi',
+          category: '',
           price: '',
           description: '',
           image: '',
@@ -174,21 +181,25 @@ export function EditProductModal({
           </div>
 
           {/* Kategori & Harga */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
               <label className="font-semibold uppercase tracking-wider text-[#3A302A] block">
-                Kategori
+                Kategori Produk *
               </label>
-              <select
+              <input
+                type="text"
+                required
+                placeholder="Ketik kategori baru / pilih..."
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value as CategoryType })}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                list="category-suggestions"
                 className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#D8D0C8] text-xs text-[#3A302A] focus:outline-none focus:border-[#C2652A]"
-              >
-                <option value="Kopi">Kopi</option>
-                <option value="Makanan">Makanan</option>
-                <option value="Camilan">Camilan</option>
-                <option value="Minuman">Minuman</option>
-              </select>
+              />
+              <datalist id="category-suggestions">
+                {existingCategories.map((cat) => (
+                  <option key={cat} value={cat} />
+                ))}
+              </datalist>
             </div>
 
             <div className="space-y-1">

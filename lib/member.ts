@@ -59,7 +59,7 @@ export async function fetchMembersFromCloud(): Promise<ExtendedMemberProfile[]> 
     const { data, error } = await supabase
       .from('members')
       .select('*')
-      .neq('member_id', 'SYSTEM-CATALOG')
+      .not('member_id', 'like', 'SYSTEM%')
       .order('created_at', { ascending: true });
 
     if (error || !data) {
@@ -356,7 +356,20 @@ function getLocalCachedMembers(): ExtendedMemberProfile[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(MEMBER_LOCAL_CACHE_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const parsed: ExtendedMemberProfile[] = raw ? JSON.parse(raw) : [];
+    const sanitized = parsed.filter(
+      (m) =>
+        m &&
+        m.id &&
+        !m.id.startsWith('SYSTEM') &&
+        m.name !== '__DELETED__' &&
+        m.email !== 'tumbalstu0@gmail.com' &&
+        m.email !== 'deleted@system.local'
+    );
+    if (parsed.length !== sanitized.length) {
+      localStorage.setItem(MEMBER_LOCAL_CACHE_KEY, JSON.stringify(sanitized));
+    }
+    return sanitized;
   } catch {
     return [];
   }

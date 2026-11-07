@@ -199,7 +199,7 @@ export default function AdminPesananPage() {
       <AdminSidebar />
 
       {/* Main Content Area (width: 992px, background: #FAF5EE) */}
-      <main className="flex-1 p-6 sm:p-10 max-w-6xl space-y-8">
+      <main className="flex-1 p-4 sm:p-10 max-w-6xl space-y-8 pb-24 lg:pb-10">
         
         {/* Top Header matching SVG (y: 25 to 135) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -30,8 +30,6 @@ import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { EditProductModal } from '@/components/admin/EditProductModal';
 
-const CATEGORIES: CategoryType[] = ['Semua', 'Kopi', 'Makanan', 'Camilan', 'Minuman'];
-
 export default function AdminKatalogPage() {
   const router = useRouter();
   const { isAdmin, isLoading } = useAdminAuth();
@@ -40,6 +38,12 @@ export default function AdminKatalogPage() {
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<'Semua' | 'Tersedia' | 'Habis'>('Semua');
+
+  // Dynamic categories created by admin / from products
+  const categories = useMemo(() => {
+    const cats = Array.from(new Set(products.map((p) => p.category?.trim()).filter(Boolean)));
+    return ['Semua', ...cats];
+  }, [products]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -187,7 +191,7 @@ export default function AdminKatalogPage() {
       <AdminSidebar />
 
       {/* Main Content Area (width: 992px, background: #FAF5EE) */}
-      <main className="flex-1 p-6 sm:p-10 max-w-6xl space-y-8">
+      <main className="flex-1 p-4 sm:p-10 max-w-6xl space-y-8 pb-24 lg:pb-10">
         
         {/* Top Header matching SVG (y: 25 to 136) */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -297,7 +301,7 @@ export default function AdminKatalogPage() {
             
             {/* Category Filter Pills (w:447, h:56) */}
             <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-[#F6F0E8] border border-[#E8E2D9] overflow-x-auto scrollbar-none">
-              {CATEGORIES.map((cat) => {
+              {categories.map((cat) => {
                 const isSelected = selectedCategory === cat;
                 return (
                   <button

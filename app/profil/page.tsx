@@ -161,7 +161,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="py-12 sm:py-16">
+    <div className="py-8 sm:py-16 pb-24 md:pb-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
         
         {/* If user is Signed In: Regular Member (Admin already redirected to /admin above) */}

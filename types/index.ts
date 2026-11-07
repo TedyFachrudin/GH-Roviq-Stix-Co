@@ -1,4 +1,4 @@
-export type CategoryType = 'Semua' | 'Kopi' | 'Makanan' | 'Camilan' | 'Minuman';
+export type CategoryType = string;
 
 export interface Product {
   id: string;

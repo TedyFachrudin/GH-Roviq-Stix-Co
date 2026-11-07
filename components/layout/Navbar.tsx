@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { ShoppingBag, Menu as MenuIcon, X, User } from 'lucide-react';
+import { ShoppingBag, Menu as MenuIcon, X, User, Home, Coffee } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
 import { useAppUser, AppSignedIn, AppSignedOut, AppUserButton } from '@/lib/auth';
 import { isAdminUser } from '@/lib/admin';
@@ -175,6 +175,62 @@ export const Navbar: React.FC = () => {
             </AppSignedIn>
           </div>
         </div>
+      )}
+
+      {/* Customer / Member Mobile Bottom Navigation Bar (Non-Admin only) */}
+      {!pathname.startsWith('/admin') && (
+        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF5EE]/95 backdrop-blur-md border-t border-[#E8E2D9] px-3 py-1.5 flex items-center justify-around md:hidden shadow-lg">
+          <Link
+            href="/"
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all ${
+              pathname === '/' ? 'text-[#C2652A] font-bold' : 'text-[#9A9088] hover:text-[#3A302A]'
+            }`}
+          >
+            <Home size={20} className={pathname === '/' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
+            <span className="text-[10px] mt-0.5">Beranda</span>
+          </Link>
+
+          <Link
+            href="/menu"
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all ${
+              pathname === '/menu' ? 'text-[#C2652A] font-bold' : 'text-[#9A9088] hover:text-[#3A302A]'
+            }`}
+          >
+            <Coffee size={20} className={pathname === '/menu' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
+            <span className="text-[10px] mt-0.5">Menu</span>
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => setIsDrawerOpen(true)}
+            className="flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all text-[#9A9088] hover:text-[#3A302A] relative"
+            aria-label="Keranjang Belanja"
+          >
+            <div className="relative">
+              <ShoppingBag size={20} className="stroke-[1.8]" />
+              {totalItems > 0 && (
+                <span className="absolute -top-1.5 -right-2 bg-[#C2652A] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
+                  {totalItems}
+                </span>
+              )}
+            </div>
+            <span className="text-[10px] mt-0.5">Pesanan</span>
+          </button>
+
+          <Link
+            href={isAdmin ? '/admin' : '/profil'}
+            className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all ${
+              pathname === '/profil' || pathname.startsWith('/sign-in')
+                ? 'text-[#C2652A] font-bold'
+                : 'text-[#9A9088] hover:text-[#3A302A]'
+            }`}
+          >
+            <User size={20} className={pathname === '/profil' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
+            <span className="text-[10px] mt-0.5">
+              {isAdmin ? 'Admin' : 'Member'}
+            </span>
+          </Link>
+        </nav>
       )}
     </header>
   );
