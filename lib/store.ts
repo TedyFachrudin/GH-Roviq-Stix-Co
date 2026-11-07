@@ -232,7 +232,43 @@ export function getNextQueueNumber(): string {
 }
 
 /**
- * Updates order with uploaded payment proof
+ * Pushes a single order to Supabase cloud database
+ */
+export async function pushOrderToCloud(order: OrderDetails): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  try {
+    const payload = JSON.stringify({
+      items: order.items || [],
+      paymentProof: order.paymentProof || '',
+    });
+    const { error } = await supabase.from('orders').upsert({
+      id: order.id,
+      customer_name: order.customerName,
+      customer_phone: order.customerPhone || '081234567890',
+      order_type: order.orderType,
+      table_number: order.tableNumber || null,
+      delivery_address: payload,
+      payment_method: order.paymentMethod,
+      subtotal: order.subtotal,
+      tax: order.tax,
+      total: order.total,
+      queue_number: order.queueNumber,
+      status: order.status,
+      created_at: order.createdAt,
+    });
+    if (error) {
+      console.warn('pushOrderToCloud error:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('pushOrderToCloud exception:', err);
+    return false;
+  }
+}
+
+/**
+ * Updates order with uploaded payment proof and syncs to Supabase
  */
 export function updateOrderPaymentProof(orderId: string, proof: string): void {
   const current = getStoredOrders();
@@ -240,6 +276,20 @@ export function updateOrderPaymentProof(orderId: string, proof: string): void {
   if (index !== -1) {
     current[index].paymentProof = proof;
     saveStoredOrders([...current]);
+
+    if (isSupabaseConfigured()) {
+      const payload = JSON.stringify({
+        items: current[index].items || [],
+        paymentProof: proof,
+      });
+      (async () => {
+        try {
+          await supabase.from('orders').update({ delivery_address: payload }).eq('id', orderId);
+        } catch (err) {
+          console.warn('Supabase paymentProof update failed:', err);
+        }
+      })();
+    }
   }
 }
 
@@ -272,16 +322,17 @@ export function saveStoredOrders(orders: OrderDetails[]): void {
 }
 
 /**
- * Adds a new incoming customer order
+ * Adds a new incoming customer order and pushes to cloud
  */
 export function addGlobalOrder(order: OrderDetails): void {
   const current = getStoredOrders();
-  const updated = [order, ...current];
+  const updated = [order, ...current.filter((o) => o.id !== order.id)];
   saveStoredOrders(updated);
+  pushOrderToCloud(order).catch(() => {});
 }
 
 /**
- * Updates status of an order ('Menunggu' -> 'Diproses' -> 'Selesai')
+ * Updates status of an order ('Menunggu' -> 'Diproses' -> 'Selesai') both locally and in Supabase
  */
 export function updateOrderStatus(
   orderId: string,
@@ -289,14 +340,162 @@ export function updateOrderStatus(
 ): boolean {
   const current = getStoredOrders();
   const index = current.findIndex((o) => o.id === orderId);
-  if (index === -1) return false;
+  if (index !== -1) {
+    current[index] = {
+      ...current[index],
+      status: newStatus,
+    };
+    saveStoredOrders([...current]);
+  }
 
-  current[index] = {
-    ...current[index],
-    status: newStatus,
-  };
-  saveStoredOrders([...current]);
+  if (isSupabaseConfigured()) {
+    (async () => {
+      try {
+        await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+      } catch (err) {
+        console.warn('Supabase status update failed:', err);
+      }
+    })();
+  }
   return true;
+}
+
+/**
+ * Syncs orders from Supabase cloud database into local storage.
+ * Ensures the admin dashboard on any device immediately sees orders placed by guests & members.
+ */
+export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
+  if (typeof window === 'undefined') return [];
+  const localOrders = getStoredOrders();
+
+  if (!isSupabaseConfigured()) return localOrders;
+
+  try {
+    const { data: cloudOrders, error } = await supabase
+      .from('orders')
+      .select('*')
+      .neq('customer_name', SYNC_CATALOG_NAME)
+      .order('created_at', { ascending: false });
+
+    if (error || !cloudOrders) {
+      console.warn('Error fetching orders from Supabase:', error?.message);
+      return localOrders;
+    }
+
+    // Identify orders that need fallback order_items lookup
+    const needItemsIds = cloudOrders
+      .filter((row) => !row.delivery_address || (!row.delivery_address.startsWith('{') && !row.delivery_address.startsWith('[')))
+      .map((row) => row.id);
+
+    let itemsByOrderId: Record<string, any[]> = {};
+    if (needItemsIds.length > 0) {
+      try {
+        const { data: dbItems } = await supabase
+          .from('order_items')
+          .select('*')
+          .in('order_id', needItemsIds);
+        if (dbItems) {
+          dbItems.forEach((it) => {
+            if (!itemsByOrderId[it.order_id]) itemsByOrderId[it.order_id] = [];
+            itemsByOrderId[it.order_id].push(it);
+          });
+        }
+      } catch (err) {
+        console.warn('Error fetching order items:', err);
+      }
+    }
+
+    const mappedCloudOrders: OrderDetails[] = cloudOrders.map((row) => {
+      let items: any[] = [];
+      let paymentProof: string | undefined = undefined;
+
+      if (row.delivery_address) {
+        try {
+          const parsed = JSON.parse(row.delivery_address);
+          if (Array.isArray(parsed)) {
+            items = parsed;
+          } else if (parsed && typeof parsed === 'object') {
+            if (Array.isArray(parsed.items)) items = parsed.items;
+            if (typeof parsed.paymentProof === 'string') paymentProof = parsed.paymentProof;
+          }
+        } catch {
+          if (row.delivery_address.startsWith('data:image')) {
+            paymentProof = row.delivery_address;
+          }
+        }
+      }
+
+      // If items empty, check itemsByOrderId
+      if (items.length === 0 && itemsByOrderId[row.id]?.length > 0) {
+        items = itemsByOrderId[row.id].map((it) => ({
+          product: {
+            id: it.product_id || 'prod',
+            name: it.product_name || 'Pesanan',
+            price: Number(it.unit_price) || 0,
+            category: 'Kopi',
+            image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
+          },
+          quantity: Number(it.quantity) || 1,
+          selectedOption: it.selected_option || undefined,
+        }));
+      }
+
+      // If still empty, provide a safe fallback product item so UI won't fail
+      if (items.length === 0) {
+        items = [
+          {
+            product: {
+              id: 'order-item-default',
+              name: `Pesanan GH ROVIQ (${row.payment_method || 'Menu'})`,
+              price: Number(row.subtotal) || Number(row.total) || 0,
+              category: 'Kopi',
+              image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
+            },
+            quantity: 1,
+          },
+        ];
+      }
+
+      // Check if local cache has payment proof
+      const localMatch = localOrders.find((lo) => lo.id === row.id);
+      if (!paymentProof && localMatch?.paymentProof) {
+        paymentProof = localMatch.paymentProof;
+      }
+
+      return {
+        id: row.id,
+        customerName: row.customer_name || 'Tamu GH ROVIQ',
+        customerPhone: row.customer_phone || '-',
+        orderType: row.order_type || 'Dine-in',
+        tableNumber: row.table_number || undefined,
+        paymentMethod: row.payment_method || 'QRIS',
+        items,
+        subtotal: Number(row.subtotal) || 0,
+        tax: Number(row.tax) || 0,
+        total: Number(row.total) || 0,
+        createdAt: row.created_at || new Date().toISOString(),
+        status: row.status || 'Diproses',
+        queueNumber: row.queue_number || '#GH-01',
+        paymentProof,
+      };
+    });
+
+    // Merge cloud orders with any local orders not yet reflected in cloud
+    const cloudIds = new Set(mappedCloudOrders.map((o) => o.id));
+    const merged = [...mappedCloudOrders];
+    for (const lo of localOrders) {
+      if (!cloudIds.has(lo.id)) {
+        merged.push(lo);
+      }
+    }
+
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(merged));
+    window.dispatchEvent(new Event('gh_orders_updated'));
+    return merged;
+  } catch (err) {
+    console.error('Failed to sync orders with cloud:', err);
+    return localOrders;
+  }
 }
 
 /**

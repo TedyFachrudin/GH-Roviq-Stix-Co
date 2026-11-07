@@ -111,6 +111,11 @@ export default function CheckoutPage() {
     if (isSupabaseConfigured()) {
       (async () => {
         try {
+          const itemsPayload = JSON.stringify({
+            items,
+            paymentProof: '',
+          });
+
           await supabase.from('orders').insert({
             id: orderId,
             clerk_id: user?.id || null,
@@ -118,7 +123,7 @@ export default function CheckoutPage() {
             customer_phone: customerPhone || '081234567890',
             order_type: orderType,
             table_number: null,
-            delivery_address: null,
+            delivery_address: itemsPayload,
             payment_method: paymentMethod,
             subtotal,
             tax,

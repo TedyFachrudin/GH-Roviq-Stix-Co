@@ -15,13 +15,16 @@ import {
   Check,
   ChevronRight,
   Sparkles,
+  Eye,
 } from 'lucide-react';
 import { OrderDetails } from '@/types';
 import {
   getStoredOrders,
   saveStoredOrders,
   updateOrderStatus,
+  syncOrdersFromCloud,
 } from '@/lib/store';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 
@@ -42,26 +45,61 @@ export default function AdminPesananPage() {
     }
   }, [isLoading, isAdmin, router]);
 
-  // Load and subscribe to real-time orders
+  // Refresh orders from local storage
   const refreshOrders = () => {
     setOrders(getStoredOrders());
   };
 
+  // Load and subscribe to real-time cloud and local orders
   useEffect(() => {
+    // 1. Initial cached orders
     refreshOrders();
-    window.addEventListener('gh_orders_updated', refreshOrders);
-    window.addEventListener('storage', refreshOrders);
+
+    // 2. Fetch latest orders from Supabase cloud
+    syncOrdersFromCloud().then((cloudOrders) => {
+      setOrders(cloudOrders);
+    });
+
+    // 3. Listen to local events
+    const handleLocalUpdate = () => setOrders(getStoredOrders());
+    window.addEventListener('gh_orders_updated', handleLocalUpdate);
+    window.addEventListener('storage', handleLocalUpdate);
+
+    // 4. Supabase Realtime channel subscription
+    let channel: any = null;
+    if (isSupabaseConfigured()) {
+      channel = supabase
+        .channel('admin_pesanan_realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          () => {
+            syncOrdersFromCloud().then((updated) => setOrders(updated));
+          }
+        )
+        .subscribe();
+    }
+
+    // 5. Periodic polling fallback every 6 seconds
+    const interval = setInterval(() => {
+      syncOrdersFromCloud().then((updated) => setOrders(updated));
+    }, 6000);
 
     return () => {
-      window.removeEventListener('gh_orders_updated', refreshOrders);
-      window.removeEventListener('storage', refreshOrders);
+      window.removeEventListener('gh_orders_updated', handleLocalUpdate);
+      window.removeEventListener('storage', handleLocalUpdate);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+      clearInterval(interval);
     };
   }, []);
 
-  const handleManualRefresh = () => {
+  const handleManualRefresh = async () => {
     setIsRefreshing(true);
-    refreshOrders();
-    setTimeout(() => setIsRefreshing(false), 600);
+    const updated = await syncOrdersFromCloud();
+    setOrders(updated);
+    setTimeout(() => setIsRefreshing(false), 500);
   };
 
   const formatRupiah = (val: number) => {
@@ -381,7 +419,7 @@ export default function AdminPesananPage() {
                   <div className="pt-4 border-t border-[#E8E2D9] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     
                     {/* Payment Info */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                       <div>
                         <span className="text-[10px] uppercase text-[#9A9088] block">Total Pembayaran</span>
                         <span className="font-serif text-lg font-bold text-[#3A302A]">
@@ -391,6 +429,20 @@ export default function AdminPesananPage() {
                       <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-white text-[#C2652A] border border-[#D8D0C8]">
                         {order.paymentMethod} • Lunas
                       </span>
+                      {order.paymentProof && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const w = window.open('');
+                            w?.document.write(`<html><head><title>Bukti Pembayaran - ${order.id}</title></head><body style="margin:0;background:#1a1a1a;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${order.paymentProof}" style="max-width:90%;max-height:90vh;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.5);" /></body></html>`);
+                          }}
+                          className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 flex items-center gap-1 transition-colors cursor-pointer"
+                          title="Klik untuk melihat bukti transfer QRIS"
+                        >
+                          <Eye size={12} />
+                          <span>Bukti QRIS</span>
+                        </button>
+                      )}
                     </div>
 
                     {/* Action Buttons matching SVG (fill: #C2652A & #3A302A) */}

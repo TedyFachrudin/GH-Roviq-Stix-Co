@@ -14,7 +14,8 @@ import {
   Layers,
   ArrowUpRight,
 } from 'lucide-react';
-import { calculateOmsetStats, OmsetStats } from '@/lib/store';
+import { calculateOmsetStats, OmsetStats, syncOrdersFromCloud } from '@/lib/store';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 
@@ -39,17 +40,49 @@ export default function AdminOmsetPage() {
 
   useEffect(() => {
     refreshStats();
-    window.addEventListener('gh_orders_updated', refreshStats);
-    window.addEventListener('storage', refreshStats);
+
+    // Sync cloud orders on mount
+    syncOrdersFromCloud().then(() => {
+      refreshStats();
+    });
+
+    const handleLocalUpdate = () => refreshStats();
+    window.addEventListener('gh_orders_updated', handleLocalUpdate);
+    window.addEventListener('storage', handleLocalUpdate);
+
+    // Supabase Realtime channel
+    let channel: any = null;
+    if (isSupabaseConfigured()) {
+      channel = supabase
+        .channel('admin_omset_realtime')
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'orders' },
+          () => {
+            syncOrdersFromCloud().then(() => refreshStats());
+          }
+        )
+        .subscribe();
+    }
+
+    // Periodic sync every 10 seconds
+    const interval = setInterval(() => {
+      syncOrdersFromCloud().then(() => refreshStats());
+    }, 10000);
 
     return () => {
-      window.removeEventListener('gh_orders_updated', refreshStats);
-      window.removeEventListener('storage', refreshStats);
+      window.removeEventListener('gh_orders_updated', handleLocalUpdate);
+      window.removeEventListener('storage', handleLocalUpdate);
+      if (channel) {
+        supabase.removeChannel(channel);
+      }
+      clearInterval(interval);
     };
   }, [timeframe]);
 
-  const handleManualRefresh = () => {
+  const handleManualRefresh = async () => {
     setIsRefreshing(true);
+    await syncOrdersFromCloud();
     refreshStats();
     setTimeout(() => setIsRefreshing(false), 500);
   };
