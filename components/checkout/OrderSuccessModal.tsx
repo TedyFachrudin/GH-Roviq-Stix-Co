@@ -132,12 +132,12 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
   const waMessage = encodeURIComponent(
     `Halo Barista GH ROVIQ! 👋\n` +
       `Saya ingin konfirmasi pesanan saya:\n\n` +
-      `🏷️ *Nomor Antrean:* ${order.queueNumber}\n` +
-      `🆔 *ID Pesanan:* ${order.id}\n` +
-      `👤 *Nama:* ${order.customerName}\n` +
-      `☕ *Pesanan:* ${itemsSummary}\n` +
-      `💰 *Total:* ${formatRupiah(order.total)}\n` +
-      `💳 *Metode:* ${order.paymentMethod}\n\n` +
+      `*Nomor Antrean:* ${order.queueNumber}\n` +
+      `*ID Pesanan:* ${order.id}\n` +
+      `*Nama:* ${order.customerName}\n` +
+      `*Pesanan:* ${itemsSummary}\n` +
+      `*Total:* ${formatRupiah(order.total)}\n` +
+      `*Metode:* ${order.paymentMethod}\n\n` +
       `Mohon diproses ya kak. Terima kasih!`
   );
   const whatsappUrl = `https://wa.me/${waNumber}?text=${waMessage}`;
