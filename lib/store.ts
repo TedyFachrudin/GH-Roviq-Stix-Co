@@ -1,9 +1,98 @@
 import { Product, OrderDetails, CategoryType } from '@/types';
 import { PRODUCTS } from './products-data';
+import { supabase, isSupabaseConfigured } from './supabase';
 
 const PRODUCTS_KEY = 'gh_roviq_products_v2';
 const UNAVAILABLE_PRODUCTS_KEY = 'gh_roviq_unavailable_products_v2';
 const ORDERS_KEY = 'gh_roviq_global_orders_v2';
+const SYNC_CATALOG_NAME = '__CATALOG_SYNC__';
+
+/**
+ * Pushes the current products array to Supabase cloud sync for cross-device visibility
+ */
+export async function pushProductsToCloud(products: Product[]): Promise<boolean> {
+  if (!isSupabaseConfigured()) return false;
+  try {
+    const payload = JSON.stringify(products);
+    const id = `gh-cat-${Date.now()}`;
+    const { error } = await supabase.from('orders').insert({
+      id,
+      customer_name: SYNC_CATALOG_NAME,
+      customer_phone: '0',
+      order_type: 'System',
+      payment_method: 'System',
+      subtotal: 0,
+      tax: 0,
+      total: 0,
+      queue_number: '#SYS',
+      delivery_address: payload,
+    });
+    if (error) {
+      console.warn('Cloud sync push warning:', error.message);
+      return false;
+    }
+    return true;
+  } catch (err) {
+    console.error('Cloud sync push exception:', err);
+    return false;
+  }
+}
+
+/**
+ * Fetches the latest products array from Supabase cloud sync
+ */
+export async function fetchProductsFromCloud(): Promise<Product[] | null> {
+  if (!isSupabaseConfigured()) return null;
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select('delivery_address, created_at')
+      .eq('customer_name', SYNC_CATALOG_NAME)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error || !data || data.length === 0) {
+      return null;
+    }
+
+    const raw = data[0]?.delivery_address;
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch (err) {
+    console.error('Cloud sync fetch exception:', err);
+    return null;
+  }
+}
+
+/**
+ * Syncs local products with cloud products.
+ * Guarantees cross-device catalog persistence between admin, guests, and members.
+ */
+export async function syncCatalogWithCloud(): Promise<Product[]> {
+  if (typeof window === 'undefined') return getStoredProducts();
+
+  const local = getStoredProducts();
+  const cloud = await fetchProductsFromCloud();
+
+  if (cloud !== null) {
+    if (local.length === 0 && cloud.length > 0) {
+      saveStoredProducts(cloud, false);
+      return cloud;
+    }
+    if (local.length > 0 && cloud.length === 0) {
+      await pushProductsToCloud(local);
+      return local;
+    }
+    // Master source from cloud across all devices
+    saveStoredProducts(cloud, false);
+    return cloud;
+  } else if (local.length > 0) {
+    await pushProductsToCloud(local);
+  }
+
+  return local;
+}
 
 export function getStoredProducts(): Product[] {
   if (typeof window === 'undefined') return PRODUCTS;
@@ -20,11 +109,14 @@ export function getStoredProducts(): Product[] {
 /**
  * Saves products to localStorage and notifies other components.
  */
-export function saveStoredProducts(products: Product[]): void {
+export function saveStoredProducts(products: Product[], pushToCloud = true): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
     window.dispatchEvent(new Event('gh_products_updated'));
+    if (pushToCloud) {
+      pushProductsToCloud(products);
+    }
   } catch (e) {
     console.error('Failed to save products:', e);
   }
@@ -38,6 +130,7 @@ export function clearStoredProducts(): void {
   try {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify([]));
     window.dispatchEvent(new Event('gh_products_updated'));
+    pushProductsToCloud([]);
   } catch (e) {
     console.error('Failed to clear products:', e);
   }
@@ -49,7 +142,7 @@ export function clearStoredProducts(): void {
 export function addProduct(product: Product): Product {
   const current = getStoredProducts();
   const updated = [product, ...current];
-  saveStoredProducts(updated);
+  saveStoredProducts(updated, true);
   return product;
 }
 
@@ -63,7 +156,7 @@ export function updateProduct(id: string, updates: Partial<Product>): Product | 
 
   const updatedProduct = { ...current[index], ...updates };
   current[index] = updatedProduct;
-  saveStoredProducts([...current]);
+  saveStoredProducts([...current], true);
   return updatedProduct;
 }
 
@@ -74,7 +167,7 @@ export function deleteProduct(id: string): boolean {
   const current = getStoredProducts();
   const filtered = current.filter((p) => p.id !== id);
   if (filtered.length === current.length) return false;
-  saveStoredProducts(filtered);
+  saveStoredProducts(filtered, true);
   return true;
 }
 

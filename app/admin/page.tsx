@@ -22,7 +22,10 @@ import {
   isProductAvailable,
   setProductAvailability,
   clearStoredProducts,
+  syncCatalogWithCloud,
+  saveStoredProducts,
 } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { EditProductModal } from '@/components/admin/EditProductModal';
@@ -56,12 +59,49 @@ export default function AdminKatalogPage() {
 
   useEffect(() => {
     refreshProducts();
+
+    syncCatalogWithCloud().then((cloudItems) => {
+      if (cloudItems && cloudItems.length > 0) {
+        setProducts(cloudItems);
+      }
+    });
+
+    const channel = supabase
+      .channel('gh_catalog_admin')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: 'customer_name=eq.__CATALOG_SYNC__',
+        },
+        (payload) => {
+          try {
+            const raw = (payload.new as any)?.delivery_address;
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                saveStoredProducts(parsed, false);
+                setProducts(parsed);
+              }
+            }
+          } catch (e) {
+            console.error('Realtime sync parse err:', e);
+          }
+        }
+      )
+      .subscribe();
+
     window.addEventListener('gh_products_updated', refreshProducts);
     window.addEventListener('storage', refreshProducts);
+    window.addEventListener('focus', refreshProducts);
 
     return () => {
+      supabase.removeChannel(channel);
       window.removeEventListener('gh_products_updated', refreshProducts);
       window.removeEventListener('storage', refreshProducts);
+      window.removeEventListener('focus', refreshProducts);
     };
   }, []);
 

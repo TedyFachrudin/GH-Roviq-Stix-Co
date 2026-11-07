@@ -5,7 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Coffee, Sparkles, Award, Clock, Heart, Plus, Edit2 } from 'lucide-react';
 import { Product } from '@/types';
-import { getStoredProducts } from '@/lib/store';
+import { getStoredProducts, syncCatalogWithCloud, saveStoredProducts } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { EditProductModal } from '@/components/admin/EditProductModal';
 import { useCart } from '@/context/CartContext';
@@ -32,12 +33,50 @@ export default function HomePage() {
     };
     syncProducts();
 
+    // Cross-device cloud sync (guest, member, admin)
+    syncCatalogWithCloud().then((cloudItems) => {
+      if (cloudItems && cloudItems.length > 0) {
+        setProducts(cloudItems);
+      }
+    });
+
+    // Realtime Supabase updates across all devices
+    const channel = supabase
+      .channel('gh_catalog_home')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: 'customer_name=eq.__CATALOG_SYNC__',
+        },
+        (payload) => {
+          try {
+            const raw = (payload.new as any)?.delivery_address;
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                saveStoredProducts(parsed, false);
+                setProducts(parsed);
+              }
+            }
+          } catch (e) {
+            console.error('Realtime sync parse err:', e);
+          }
+        }
+      )
+      .subscribe();
+
     window.addEventListener('gh_products_updated', syncProducts);
     window.addEventListener('storage', syncProducts);
+    window.addEventListener('focus', syncProducts);
 
     return () => {
+      supabase.removeChannel(channel);
       window.removeEventListener('gh_products_updated', syncProducts);
       window.removeEventListener('storage', syncProducts);
+      window.removeEventListener('focus', syncProducts);
     };
   }, []);
 

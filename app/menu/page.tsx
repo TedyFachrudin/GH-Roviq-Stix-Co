@@ -3,7 +3,8 @@
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
 import { Search, Plus, Coffee, Sparkles, Edit2 } from 'lucide-react';
-import { getStoredProducts, isProductAvailable } from '@/lib/store';
+import { getStoredProducts, isProductAvailable, syncCatalogWithCloud, saveStoredProducts } from '@/lib/store';
+import { supabase } from '@/lib/supabase';
 import { CategoryType, Product } from '@/types';
 import { useCart } from '@/context/CartContext';
 import { useAdminAuth } from '@/lib/admin';
@@ -28,12 +29,51 @@ export default function MenuPage() {
     };
 
     sync();
+
+    // Cross-device cloud sync (guest, member, admin)
+    syncCatalogWithCloud().then((cloudItems) => {
+      if (cloudItems && cloudItems.length > 0) {
+        setProducts(cloudItems);
+      }
+    });
+
+    // Realtime Supabase updates across all devices
+    const channel = supabase
+      .channel('gh_catalog_menu')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: 'customer_name=eq.__CATALOG_SYNC__',
+        },
+        (payload) => {
+          try {
+            const raw = (payload.new as any)?.delivery_address;
+            if (raw) {
+              const parsed = JSON.parse(raw);
+              if (Array.isArray(parsed)) {
+                saveStoredProducts(parsed, false);
+                setProducts(parsed);
+              }
+            }
+          } catch (e) {
+            console.error('Realtime sync parse err:', e);
+          }
+        }
+      )
+      .subscribe();
+
     window.addEventListener('gh_products_updated', sync);
     window.addEventListener('storage', sync);
+    window.addEventListener('focus', sync);
 
     return () => {
+      supabase.removeChannel(channel);
       window.removeEventListener('gh_products_updated', sync);
       window.removeEventListener('storage', sync);
+      window.removeEventListener('focus', sync);
     };
   }, []);
 
