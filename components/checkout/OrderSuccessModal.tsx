@@ -131,7 +131,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
   // Nomor resmi WhatsApp Barista GH ROVIQ (08989884001 -> 628989884001)
   const waNumber = '628989884001';
   const waMessage = encodeURIComponent(
-    `Halo Barista GH ROVIQ! 👋\n` +
+    `Halo GH ROVIQ! 👋\n` +
       `Saya ingin konfirmasi pesanan saya:\n\n` +
       `*Nomor Antrean:* ${order.queueNumber}\n` +
       `*ID Pesanan:* ${order.id}\n` +
