@@ -5,7 +5,7 @@ import { BrandLogo } from '@/components/ui/BrandLogo';
 export const Footer: React.FC = () => {
   return (
     <footer className="bg-[#F6F0E8] border-t border-[#E8E2D9] text-[#3A302A] mt-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 pb-24 md:pb-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
           
           {/* Brand info */}

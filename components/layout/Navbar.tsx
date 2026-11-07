@@ -26,7 +26,8 @@ export const Navbar: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-[#FAF5EE]/95 backdrop-blur-md border-b border-[#E8E2D9] transition-all">
+    <>
+      <header className="sticky top-0 z-40 bg-[#FAF5EE]/95 backdrop-blur-md border-b border-[#E8E2D9] transition-all">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           
@@ -176,10 +177,11 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
       )}
+    </header>
 
-      {/* Customer / Member Mobile Bottom Navigation Bar (Non-Admin only) */}
-      {!pathname.startsWith('/admin') && (
-        <nav className="fixed bottom-0 left-0 right-0 z-40 bg-[#FAF5EE]/95 backdrop-blur-md border-t border-[#E8E2D9] px-3 py-1.5 flex items-center justify-around md:hidden shadow-lg">
+    {/* Customer / Member Mobile Bottom Navigation Bar (Non-Admin only) */}
+    {!pathname.startsWith('/admin') && (
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#FAF5EE]/95 backdrop-blur-md border-t border-[#E8E2D9] px-3 py-1.5 flex items-center justify-around md:hidden shadow-lg">
           <Link
             href="/"
             className={`flex flex-col items-center justify-center py-1 px-2 rounded-xl transition-all ${
@@ -232,6 +234,6 @@ export const Navbar: React.FC = () => {
           </Link>
         </nav>
       )}
-    </header>
+    </>
   );
 };
