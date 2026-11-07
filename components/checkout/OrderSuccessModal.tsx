@@ -128,7 +128,11 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
           .join(', ')
       : 'Sajian Menu';
 
-  const waNumber = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '6281234567890').replace(/[^0-9]/g, '');
+  let rawWa = (process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || '628989884001').replace(/[^0-9]/g, '');
+  if (rawWa.startsWith('0')) {
+    rawWa = '62' + rawWa.slice(1);
+  }
+  const waNumber = rawWa;
   const waMessage = encodeURIComponent(
     `Halo Barista GH ROVIQ! 👋\n` +
       `Saya ingin konfirmasi pesanan saya:\n\n` +
