@@ -132,9 +132,8 @@ export default function AdminOmsetPage() {
       return;
     }
 
-    const headers = ['ID Pesanan', 'Pelanggan', 'Metode Pembayaran', 'Total', 'Waktu'];
+    const headers = ['Pelanggan', 'Metode Pembayaran', 'Total', 'Waktu'];
     const rows = stats.recentTransactions.map((tx) => [
-      tx.id,
       `"${tx.customerName}"`,
       tx.paymentMethod,
       tx.total,
@@ -438,7 +437,6 @@ export default function AdminOmsetPage() {
                 <table className="w-full text-left text-xs">
                   <thead>
                     <tr className="border-b border-[#E8E2D9] text-[#9A9088] uppercase text-[10px] tracking-wider">
-                      <th className="pb-3 font-semibold">ID Pesanan</th>
                       <th className="pb-3 font-semibold">Pelanggan</th>
                       <th className="pb-3 font-semibold">Waktu</th>
                       <th className="pb-3 font-semibold">Metode</th>
@@ -450,9 +448,6 @@ export default function AdminOmsetPage() {
                   <tbody className="divide-y divide-[#F6F0E8]">
                     {paginatedTransactions.map((tx) => (
                       <tr key={tx.id} className="hover:bg-[#FAF5EE] transition-colors">
-                        <td className="py-3.5 font-mono font-bold text-[#3A302A]">
-                          {tx.id}
-                        </td>
                         <td className="py-3.5 font-medium text-[#3A302A]">
                           {tx.customerName}
                         </td>

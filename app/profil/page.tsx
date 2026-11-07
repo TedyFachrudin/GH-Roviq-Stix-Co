@@ -249,8 +249,7 @@ export default function ProfilePage() {
                       >
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-[#3A302A]">{item.id}</span>
-                            <span className="text-[#9A9088]">• {item.date}</span>
+                            <span className="font-semibold text-[#3A302A]">{item.date}</span>
                           </div>
                           <p className="font-medium text-[#605850]">{item.items}</p>
                         </div>
