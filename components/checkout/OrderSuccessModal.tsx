@@ -39,23 +39,58 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
     }).format(val);
   };
 
-  const handleProofUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = document.createElement('img');
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          } else {
+            resolve(ev.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(ev.target?.result as string);
+        img.src = ev.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleProofUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Ukuran file maksimal 5MB. Silakan pilih foto bukti lain.');
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Ukuran file maksimal 10MB. Silakan pilih foto bukti lain.');
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      const base64 = reader.result as string;
-      if (base64) {
-        setPaymentProof(base64);
-      }
-    };
-    reader.readAsDataURL(file);
+    const base64 = await compressImage(file);
+    if (base64) {
+      setPaymentProof(base64);
+      // Immediately sync to global store & cloud so admin sees it right away
+      updateOrderPaymentProof(order.id, base64);
+    }
   };
 
   const handleKirimBukti = () => {

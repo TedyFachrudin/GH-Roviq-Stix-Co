@@ -13,7 +13,8 @@ import {
   AlertCircle,
   Eye,
   X,
-  ChevronDown,
+  Trash2,
+  Upload,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from 'lucide-react';
@@ -28,6 +29,8 @@ import {
   getStoredOrders,
   saveStoredOrders,
   updateOrderStatus,
+  updateOrderPaymentProof,
+  deleteOrder,
   syncOrdersFromCloud,
 } from '@/lib/store';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
@@ -160,6 +163,63 @@ export default function AdminPesananPage() {
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
+  };
+
+  const handleDeleteOrder = (orderId: string, customerName: string) => {
+    if (confirm(`Hapus pesanan ${orderId} (${customerName}) secara permanen?`)) {
+      deleteOrder(orderId);
+      setOrders((prev) => prev.filter((o) => o.id !== orderId));
+    }
+  };
+
+  const compressImage = (file: File): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        const img = document.createElement('img');
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.8));
+          } else {
+            resolve(ev.target?.result as string);
+          }
+        };
+        img.onerror = () => resolve(ev.target?.result as string);
+        img.src = ev.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const handleAdminAttachProof = async (orderId: string, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const base64 = await compressImage(file);
+    if (base64) {
+      updateOrderPaymentProof(orderId, base64);
+      setOrders((prev) =>
+        prev.map((o) => (o.id === orderId ? { ...o, paymentProof: base64 } : o))
+      );
+      setSelectedProofImage(base64);
+    }
   };
 
   if (isLoading || !isAdmin) {
@@ -454,26 +514,23 @@ export default function AdminPesananPage() {
 
                   {/* Bukti Pembayaran Pelanggan (QRIS/Transfer) */}
                   {order.paymentProof ? (
-                    <div className="p-3.5 rounded-2xl bg-white border border-[#E8E2D9] space-y-2.5 shadow-2xs">
+                    <div
+                      onClick={() => setSelectedProofImage(order.paymentProof!)}
+                      className="p-3.5 rounded-2xl bg-white hover:bg-[#FAF5EE] border border-[#E8E2D9] hover:border-[#C2652A] cursor-pointer space-y-2.5 shadow-2xs transition-all group"
+                      title="Klik untuk melihat bukti foto pembayaran"
+                    >
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
                           <CheckCircle2 size={13} className="text-emerald-600" />
-                          <span>Bukti Transfer QRIS Terlampir</span>
+                          <span>Bukti Transfer QRIS Terlampir (Klik untuk Melihat)</span>
                         </span>
-                        <button
-                          type="button"
-                          onClick={() => setSelectedProofImage(order.paymentProof!)}
-                          className="text-[11px] font-semibold text-[#C2652A] hover:underline flex items-center gap-1 cursor-pointer"
-                        >
+                        <span className="text-[11px] font-semibold text-[#C2652A] group-hover:underline flex items-center gap-1">
                           <Eye size={12} />
                           <span>Perbesar Foto</span>
-                        </button>
+                        </span>
                       </div>
 
-                      <div
-                        onClick={() => setSelectedProofImage(order.paymentProof!)}
-                        className="relative w-full max-w-[200px] h-28 rounded-xl overflow-hidden border border-[#D8D0C8] bg-[#FAF5EE] cursor-pointer group shadow-2xs hover:border-[#C2652A] transition-all"
-                      >
+                      <div className="relative w-full max-w-[200px] h-28 rounded-xl overflow-hidden border border-[#D8D0C8] bg-[#FAF5EE]">
                         <img
                           src={order.paymentProof}
                           alt="Bukti pembayaran pelanggan"
@@ -486,13 +543,25 @@ export default function AdminPesananPage() {
                       </div>
                     </div>
                   ) : order.paymentMethod === 'QRIS' ? (
-                    <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center gap-2 text-xs text-amber-800">
-                      <AlertCircle size={14} className="text-amber-600 shrink-0" />
-                      <span>Pelanggan memilih metode <strong>QRIS</strong>. Bukti bayar belum diunggah.</span>
-                    </div>
+                    <label className="p-3 rounded-xl bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200/80 flex items-center justify-between gap-2 text-xs text-amber-800 cursor-pointer transition-colors group">
+                      <div className="flex items-center gap-2">
+                        <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                        <span>Pelanggan memilih metode <strong>QRIS</strong>. Bukti bayar belum diunggah (klik untuk lampirkan/lihat).</span>
+                      </div>
+                      <span className="text-[11px] font-semibold text-[#C2652A] group-hover:underline flex items-center gap-1 shrink-0">
+                        <Upload size={12} />
+                        <span>Unggah Bukti</span>
+                      </span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleAdminAttachProof(order.id, e)}
+                      />
+                    </label>
                   ) : null}
 
-                  {/* Card Bottom: Total Payment & Status Dropdown Selector */}
+                  {/* Card Bottom: Total Payment & Action Buttons (DIPROSES & SELESAI) + Hapus */}
                   <div className="pt-4 border-t border-[#E8E2D9] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     
                     {/* Payment Info */}
@@ -508,35 +577,38 @@ export default function AdminPesananPage() {
                       </span>
                     </div>
 
-                    {/* Status Selector Dropdown */}
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-[11px] font-semibold text-[#605850]">Status:</span>
-                      <div className="relative">
-                        <select
-                          value={order.status}
-                          onChange={(e) =>
-                            handleStatusChange(
-                              order.id,
-                              e.target.value as 'Menunggu' | 'Diproses' | 'Selesai'
-                            )
-                          }
-                          className={`appearance-none pl-3.5 pr-8 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#C2652A]/30 ${
-                            isWaiting
-                              ? 'bg-[#FFF3E0] text-[#E65100] border-[#FFE0B2]'
-                              : isProcessing
-                              ? 'bg-[#E3F2FD] text-[#1565C0] border-[#BBDEFB]'
-                              : 'bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9]'
-                          }`}
-                        >
-                          <option value="Menunggu">⏳ Menunggu</option>
-                          <option value="Diproses">👨‍🍳 Diproses</option>
-                          <option value="Selesai">✅ Selesai</option>
-                        </select>
-                        <ChevronDown
-                          size={14}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-current opacity-70"
-                        />
-                      </div>
+                    {/* Action Buttons: DIPROSES & SELESAI (tanpa emoji) + Button Sampah */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(order.id, 'Diproses')}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-all active:scale-95 cursor-pointer ${
+                          isProcessing
+                            ? 'bg-[#C2652A] text-white shadow-sm ring-2 ring-[#C2652A]/30'
+                            : 'bg-white text-[#605850] border border-[#D8D0C8] hover:border-[#C2652A] hover:text-[#C2652A] hover:bg-[#FAF5EE]'
+                        }`}
+                      >
+                        DIPROSES
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleStatusChange(order.id, 'Selesai')}
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold tracking-wider uppercase transition-all active:scale-95 cursor-pointer ${
+                          isCompleted
+                            ? 'bg-[#3A302A] text-white shadow-sm ring-2 ring-[#3A302A]/30'
+                            : 'bg-white text-[#605850] border border-[#D8D0C8] hover:border-[#3A302A] hover:text-[#3A302A] hover:bg-[#FAF5EE]'
+                        }`}
+                      >
+                        SELESAI
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOrder(order.id, order.customerName)}
+                        className="p-2 rounded-xl text-[#9A9088] hover:text-red-600 hover:bg-red-50 border border-[#D8D0C8] hover:border-red-300 transition-all cursor-pointer shadow-2xs ml-1"
+                        title="Hapus pesanan ini"
+                      >
+                        <Trash2 size={15} />
+                      </button>
                     </div>
 
                   </div>

@@ -269,8 +269,27 @@ export async function pushOrderToCloud(order: OrderDetails): Promise<boolean> {
 
 const STATUS_SYNC_NAME = '__ORDER_STATUS_SYNC__';
 const PROOF_SYNC_NAME = '__ORDER_PROOF_SYNC__';
+const DELETE_SYNC_NAME = '__ORDER_DELETE_SYNC__';
 const STATUS_OVERRIDES_KEY = 'gh_roviq_status_overrides_v1';
 const PROOF_OVERRIDES_KEY = 'gh_roviq_proof_overrides_v1';
+const DELETED_ORDERS_KEY = 'gh_roviq_deleted_orders_v1';
+
+export function getDeletedOrderIds(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(DELETED_ORDERS_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveDeletedOrderIds(ids: string[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(DELETED_ORDERS_KEY, JSON.stringify(ids));
+  } catch {}
+}
 
 export function getLocalStatusOverrides(): Record<string, 'Menunggu' | 'Diproses' | 'Selesai'> {
   if (typeof window === 'undefined') return {};
@@ -438,10 +457,12 @@ function isSystemCatalogOrder(o: any): boolean {
     id.startsWith('gh-cat-') ||
     id.startsWith('gh-stat-') ||
     id.startsWith('gh-proof-') ||
+    id.startsWith('gh-del-') ||
     id === 'gh-system-catalog-state' ||
     name.includes('CATALOG') ||
     name.includes('STATUS_SYNC') ||
-    name.includes('PROOF_SYNC')
+    name.includes('PROOF_SYNC') ||
+    name.includes('DELETE_SYNC')
   );
 }
 
@@ -456,9 +477,11 @@ export function getStoredOrders(): OrderDetails[] {
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
 
-    // Filter out any system catalog rows and sanitize items
+    const deletedIds = new Set(getDeletedOrderIds());
+
+    // Filter out any system catalog rows, deleted orders, and sanitize items
     return parsed
-      .filter((o) => !isSystemCatalogOrder(o))
+      .filter((o) => !isSystemCatalogOrder(o) && !deletedIds.has(o.id))
       .map((o) => sanitizeOrder(o));
   } catch {
     return [];
@@ -471,7 +494,10 @@ export function getStoredOrders(): OrderDetails[] {
 export function saveStoredOrders(orders: OrderDetails[]): void {
   if (typeof window === 'undefined') return;
   try {
-    const sanitized = orders.filter((o) => !isSystemCatalogOrder(o)).map(sanitizeOrder);
+    const deletedIds = new Set(getDeletedOrderIds());
+    const sanitized = orders
+      .filter((o) => !isSystemCatalogOrder(o) && !deletedIds.has(o.id))
+      .map(sanitizeOrder);
     localStorage.setItem(ORDERS_KEY, JSON.stringify(sanitized));
     window.dispatchEvent(new Event('gh_orders_updated'));
   } catch (e) {
@@ -488,6 +514,57 @@ export function addGlobalOrder(order: OrderDetails): void {
   const updated = [safe, ...current.filter((o) => o.id !== safe.id)];
   saveStoredOrders(updated);
   pushOrderToCloud(safe).catch(() => {});
+}
+
+/**
+ * Deletes an order permanently from local storage and Supabase cloud
+ */
+export function deleteOrder(orderId: string): boolean {
+  const current = getStoredOrders();
+  const filtered = current.filter((o) => o.id !== orderId);
+
+  // Add to persistent deleted list
+  const deleted = getDeletedOrderIds();
+  if (!deleted.includes(orderId)) {
+    deleted.push(orderId);
+    saveDeletedOrderIds(deleted);
+  }
+
+  saveStoredOrders(filtered);
+
+  // Clear from status and proof overrides
+  const statusMap = getLocalStatusOverrides();
+  delete statusMap[orderId];
+  saveLocalStatusOverrides(statusMap);
+
+  const proofMap = getLocalProofOverrides();
+  delete proofMap[orderId];
+  saveLocalProofOverrides(proofMap);
+
+  // Broadcast deletion to Supabase cloud
+  if (isSupabaseConfigured()) {
+    (async () => {
+      try {
+        await supabase.from('orders').delete().eq('id', orderId);
+        await supabase.from('orders').insert({
+          id: `gh-del-${orderId}-${Date.now()}`,
+          customer_name: DELETE_SYNC_NAME,
+          customer_phone: '0',
+          order_type: 'System',
+          payment_method: 'System',
+          subtotal: 0,
+          tax: 0,
+          total: 0,
+          queue_number: '#SYS',
+          status: 'Selesai',
+          delivery_address: JSON.stringify({ deletedOrderId: orderId }),
+        });
+      } catch (err) {
+        console.warn('Supabase delete sync error:', err);
+      }
+    })();
+  }
+  return true;
 }
 
 /**
@@ -558,9 +635,10 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
       return localOrders;
     }
 
-    // Extract status and proof overrides from cloud sync rows
+    // Extract status, proof, and delete overrides from cloud sync rows
     const cloudStatusOverrides: Record<string, 'Menunggu' | 'Diproses' | 'Selesai'> = {};
     const cloudProofOverrides: Record<string, string> = {};
+    const allDeletedIds = new Set<string>(getDeletedOrderIds());
 
     allRows.forEach((row) => {
       if (row.customer_name === STATUS_SYNC_NAME && row.delivery_address) {
@@ -577,14 +655,25 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
             cloudProofOverrides[parsed.orderId] = parsed.paymentProof;
           }
         } catch {}
+      } else if (row.customer_name === DELETE_SYNC_NAME && row.delivery_address) {
+        try {
+          const parsed = JSON.parse(row.delivery_address);
+          if (parsed.deletedOrderId) {
+            allDeletedIds.add(parsed.deletedOrderId);
+          }
+        } catch {}
       }
     });
+
+    saveDeletedOrderIds(Array.from(allDeletedIds));
 
     const localStatusMap = getLocalStatusOverrides();
     const localProofMap = getLocalProofOverrides();
 
-    // Filter out any system catalog / sync rows for real customer orders
-    const validCloudOrders = allRows.filter((row) => !isSystemCatalogOrder(row));
+    // Filter out any system catalog / sync rows and any deleted orders
+    const validCloudOrders = allRows.filter(
+      (row) => !isSystemCatalogOrder(row) && !allDeletedIds.has(row.id)
+    );
 
     // Identify orders that need fallback order_items lookup
     const needItemsIds = validCloudOrders
@@ -688,7 +777,7 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
     const cloudIds = new Set(mappedCloudOrders.map((o) => o.id));
     const merged = [...mappedCloudOrders];
     for (const lo of localOrders) {
-      if (!cloudIds.has(lo.id) && !isSystemCatalogOrder(lo)) {
+      if (!cloudIds.has(lo.id) && !isSystemCatalogOrder(lo) && !allDeletedIds.has(lo.id)) {
         merged.push(sanitizeOrder(lo));
       }
     }
@@ -802,7 +891,7 @@ export function calculateOmsetStats(timeframe: 'today' | 'week' | 'month' = 'tod
     percentage: totalCatSum > 0 ? Math.round((revenue / totalCatSum) * 100) : 0,
   }));
 
-  const recentTransactions = filtered.slice(0, 10).map((o) => ({
+  const recentTransactions = filtered.map((o) => ({
     id: o.id,
     customerName: o.customerName,
     total: o.total,

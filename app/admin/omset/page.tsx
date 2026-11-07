@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   TrendingUp,
@@ -13,8 +13,17 @@ import {
   Calendar,
   Layers,
   ArrowUpRight,
+  Trash2,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from 'lucide-react';
-import { calculateOmsetStats, OmsetStats, syncOrdersFromCloud } from '@/lib/store';
+import { calculateOmsetStats, OmsetStats, syncOrdersFromCloud, deleteOrder } from '@/lib/store';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from '@/components/ui/pagination';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
@@ -36,6 +45,28 @@ export default function AdminOmsetPage() {
 
   const refreshStats = () => {
     setStats(calculateOmsetStats(timeframe));
+  };
+
+  const ITEMS_PER_PAGE = 10;
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset page when timeframe changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [timeframe]);
+
+  const totalPages = Math.ceil(stats.recentTransactions.length / ITEMS_PER_PAGE) || 1;
+
+  const paginatedTransactions = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return stats.recentTransactions.slice(start, start + ITEMS_PER_PAGE);
+  }, [stats.recentTransactions, currentPage]);
+
+  const handleDeleteTransaction = (orderId: string, customerName: string) => {
+    if (confirm(`Hapus transaksi ${orderId} (${customerName}) dari pembukuan riwayat omset?`)) {
+      deleteOrder(orderId);
+      refreshStats();
+    }
   };
 
   useEffect(() => {
@@ -385,7 +416,7 @@ export default function AdminOmsetPage() {
               </h3>
             </div>
             <span className="text-xs text-[#9A9088]">
-              {stats.recentTransactions.length} Transaksi Ditampilkan
+              {stats.recentTransactions.length} Transaksi Tercatat
             </span>
           </div>
 
@@ -402,50 +433,113 @@ export default function AdminOmsetPage() {
               </p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead>
-                  <tr className="border-b border-[#E8E2D9] text-[#9A9088] uppercase text-[10px] tracking-wider">
-                    <th className="pb-3 font-semibold">ID Pesanan</th>
-                    <th className="pb-3 font-semibold">Pelanggan</th>
-                    <th className="pb-3 font-semibold">Waktu</th>
-                    <th className="pb-3 font-semibold">Metode</th>
-                    <th className="pb-3 font-semibold">Status</th>
-                    <th className="pb-3 font-semibold text-right">Total</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#F6F0E8]">
-                  {stats.recentTransactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-[#FAF5EE] transition-colors">
-                      <td className="py-3.5 font-mono font-bold text-[#3A302A]">
-                        {tx.id}
-                      </td>
-                      <td className="py-3.5 font-medium text-[#3A302A]">
-                        {tx.customerName}
-                      </td>
-                      <td className="py-3.5 text-[#9A9088]">
-                        {new Date(tx.createdAt).toLocaleTimeString('id-ID', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </td>
-                      <td className="py-3.5">
-                        <span className="px-2 py-0.5 rounded-md bg-[#F6F0E8] text-[#3A302A] text-[10px] font-semibold">
-                          {tx.paymentMethod}
-                        </span>
-                      </td>
-                      <td className="py-3.5">
-                        <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold">
-                          {tx.status}
-                        </span>
-                      </td>
-                      <td className="py-3.5 font-bold text-right text-[#C2652A]">
-                        {formatRupiah(tx.total)}
-                      </td>
+            <div className="space-y-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-[#E8E2D9] text-[#9A9088] uppercase text-[10px] tracking-wider">
+                      <th className="pb-3 font-semibold">ID Pesanan</th>
+                      <th className="pb-3 font-semibold">Pelanggan</th>
+                      <th className="pb-3 font-semibold">Waktu</th>
+                      <th className="pb-3 font-semibold">Metode</th>
+                      <th className="pb-3 font-semibold">Status</th>
+                      <th className="pb-3 font-semibold text-right">Total</th>
+                      <th className="pb-3 font-semibold text-center w-14">Aksi</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-[#F6F0E8]">
+                    {paginatedTransactions.map((tx) => (
+                      <tr key={tx.id} className="hover:bg-[#FAF5EE] transition-colors">
+                        <td className="py-3.5 font-mono font-bold text-[#3A302A]">
+                          {tx.id}
+                        </td>
+                        <td className="py-3.5 font-medium text-[#3A302A]">
+                          {tx.customerName}
+                        </td>
+                        <td className="py-3.5 text-[#9A9088]">
+                          {new Date(tx.createdAt).toLocaleTimeString('id-ID', {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </td>
+                        <td className="py-3.5">
+                          <span className="px-2 py-0.5 rounded-md bg-[#F6F0E8] text-[#3A302A] text-[10px] font-semibold">
+                            {tx.paymentMethod}
+                          </span>
+                        </td>
+                        <td className="py-3.5">
+                          <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-semibold">
+                            {tx.status}
+                          </span>
+                        </td>
+                        <td className="py-3.5 font-bold text-right text-[#C2652A]">
+                          {formatRupiah(tx.total)}
+                        </td>
+                        <td className="py-3.5 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteTransaction(tx.id, tx.customerName)}
+                            className="p-1.5 rounded-lg text-[#9A9088] hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
+                            title="Hapus transaksi ini dari riwayat"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Pagination (Maks 10 transaksi per halaman) */}
+              {totalPages > 1 && (
+                <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#E8E2D9]">
+                  <p className="text-xs text-[#605850]">
+                    Menampilkan <span className="font-semibold text-[#3A302A]">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> -{' '}
+                    <span className="font-semibold text-[#3A302A]">
+                      {Math.min(currentPage * ITEMS_PER_PAGE, stats.recentTransactions.length)}
+                    </span>{' '}
+                    dari <span className="font-semibold text-[#3A302A]">{stats.recentTransactions.length}</span> transaksi
+                  </p>
+
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                          disabled={currentPage === 1}
+                          aria-label="Go to previous page"
+                          size="icon"
+                        >
+                          <ChevronLeftIcon className="size-4" />
+                        </PaginationLink>
+                      </PaginationItem>
+
+                      {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                        <PaginationItem key={page}>
+                          <PaginationLink
+                            onClick={() => setCurrentPage(page)}
+                            isActive={currentPage === page}
+                          >
+                            {page}
+                          </PaginationLink>
+                        </PaginationItem>
+                      ))}
+
+                      <PaginationItem>
+                        <PaginationLink
+                          onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                          disabled={currentPage === totalPages}
+                          aria-label="Go to next page"
+                          size="icon"
+                        >
+                          <ChevronRightIcon className="size-4" />
+                        </PaginationLink>
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
+                </div>
+              )}
             </div>
           )}
         </div>
