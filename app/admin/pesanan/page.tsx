@@ -14,7 +14,6 @@ import {
   Eye,
   X,
   Trash2,
-  Upload,
   ChevronLeftIcon,
   ChevronRightIcon,
 } from 'lucide-react';
@@ -29,7 +28,6 @@ import {
   getStoredOrders,
   saveStoredOrders,
   updateOrderStatus,
-  updateOrderPaymentProof,
   deleteOrder,
   syncOrdersFromCloud,
 } from '@/lib/store';
@@ -169,56 +167,6 @@ export default function AdminPesananPage() {
     if (confirm(`Hapus pesanan ${orderId} (${customerName}) secara permanen?`)) {
       deleteOrder(orderId);
       setOrders((prev) => prev.filter((o) => o.id !== orderId));
-    }
-  };
-
-  const compressImage = (file: File): Promise<string> => {
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        const img = document.createElement('img');
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          const maxDim = 1200;
-          if (width > maxDim || height > maxDim) {
-            if (width > height) {
-              height = Math.round((height * maxDim) / width);
-              width = maxDim;
-            } else {
-              width = Math.round((width * maxDim) / height);
-              height = maxDim;
-            }
-          }
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          if (ctx) {
-            ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.8));
-          } else {
-            resolve(ev.target?.result as string);
-          }
-        };
-        img.onerror = () => resolve(ev.target?.result as string);
-        img.src = ev.target?.result as string;
-      };
-      reader.onerror = () => resolve('');
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const handleAdminAttachProof = async (orderId: string, e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const base64 = await compressImage(file);
-    if (base64) {
-      updateOrderPaymentProof(orderId, base64);
-      setOrders((prev) =>
-        prev.map((o) => (o.id === orderId ? { ...o, paymentProof: base64 } : o))
-      );
-      setSelectedProofImage(base64);
     }
   };
 
@@ -517,16 +465,16 @@ export default function AdminPesananPage() {
                     <div
                       onClick={() => setSelectedProofImage(order.paymentProof!)}
                       className="p-3.5 rounded-2xl bg-white hover:bg-[#FAF5EE] border border-[#E8E2D9] hover:border-[#C2652A] cursor-pointer space-y-2.5 shadow-2xs transition-all group"
-                      title="Klik untuk melihat bukti foto pembayaran"
+                      title="Klik untuk melihat bukti foto pembayaran pelanggan"
                     >
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
                           <CheckCircle2 size={13} className="text-emerald-600" />
-                          <span>Bukti Transfer QRIS Terlampir (Klik untuk Melihat)</span>
+                          <span>Bukti Transfer dari Pelanggan (Klik untuk Memperbesar)</span>
                         </span>
                         <span className="text-[11px] font-semibold text-[#C2652A] group-hover:underline flex items-center gap-1">
                           <Eye size={12} />
-                          <span>Perbesar Foto</span>
+                          <span>Lihat Foto Penuh</span>
                         </span>
                       </div>
 
@@ -543,22 +491,10 @@ export default function AdminPesananPage() {
                       </div>
                     </div>
                   ) : order.paymentMethod === 'QRIS' ? (
-                    <label className="p-3 rounded-xl bg-amber-50/70 hover:bg-amber-100/70 border border-amber-200/80 flex items-center justify-between gap-2 text-xs text-amber-800 cursor-pointer transition-colors group">
-                      <div className="flex items-center gap-2">
-                        <AlertCircle size={14} className="text-amber-600 shrink-0" />
-                        <span>Pelanggan memilih metode <strong>QRIS</strong>. Bukti bayar belum diunggah (klik untuk lampirkan/lihat).</span>
-                      </div>
-                      <span className="text-[11px] font-semibold text-[#C2652A] group-hover:underline flex items-center gap-1 shrink-0">
-                        <Upload size={12} />
-                        <span>Unggah Bukti</span>
-                      </span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleAdminAttachProof(order.id, e)}
-                      />
-                    </label>
+                    <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center gap-2 text-xs text-amber-800">
+                      <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                      <span>Pelanggan memilih metode <strong>QRIS</strong>. Bukti bayar belum diunggah oleh pelanggan.</span>
+                    </div>
                   ) : null}
 
                   {/* Card Bottom: Total Payment & Action Buttons (DIPROSES & SELESAI) + Hapus */}

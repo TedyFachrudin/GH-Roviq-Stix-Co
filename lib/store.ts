@@ -328,7 +328,7 @@ export function saveLocalProofOverrides(map: Record<string, string>): void {
 /**
  * Updates order with uploaded payment proof and syncs to Supabase
  */
-export function updateOrderPaymentProof(orderId: string, proof: string): void {
+export async function updateOrderPaymentProof(orderId: string, proof: string): Promise<boolean> {
   const current = getStoredOrders();
   const index = current.findIndex((o) => o.id === orderId);
   if (index !== -1) {
@@ -341,28 +341,38 @@ export function updateOrderPaymentProof(orderId: string, proof: string): void {
   proofMap[orderId] = proof;
   saveLocalProofOverrides(proofMap);
 
-  // Sync proof to Supabase cloud via sync insert (which works under public insert policy)
-  if (isSupabaseConfigured()) {
-    (async () => {
-      try {
-        await supabase.from('orders').insert({
-          id: `gh-proof-${orderId}-${Date.now()}`,
-          customer_name: PROOF_SYNC_NAME,
-          customer_phone: '0',
-          order_type: 'System',
-          payment_method: 'System',
-          subtotal: 0,
-          tax: 0,
-          total: 0,
-          queue_number: '#SYS',
-          status: 'Menunggu',
-          delivery_address: JSON.stringify({ orderId, paymentProof: proof }),
-        });
-      } catch (err) {
-        console.warn('Supabase paymentProof sync insert failed:', err);
-      }
-    })();
+  // Trigger local event so admin dashboard updates immediately on the same browser
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('gh_orders_updated'));
   }
+
+  // Sync proof to Supabase cloud via sync insert (works under public insert policy)
+  if (isSupabaseConfigured()) {
+    try {
+      const { error } = await supabase.from('orders').insert({
+        id: `gh-proof-${orderId}-${Date.now()}`,
+        customer_name: PROOF_SYNC_NAME,
+        customer_phone: '0',
+        order_type: 'System',
+        payment_method: 'System',
+        subtotal: 0,
+        tax: 0,
+        total: 0,
+        queue_number: '#SYS',
+        status: 'Menunggu',
+        delivery_address: JSON.stringify({ orderId, paymentProof: proof }),
+      });
+      if (error) {
+        console.warn('Supabase paymentProof sync insert failed:', error.message);
+        return false;
+      }
+      return true;
+    } catch (err) {
+      console.warn('Supabase paymentProof sync insert exception:', err);
+      return false;
+    }
+  }
+  return true;
 }
 
 /**

@@ -25,6 +25,7 @@ interface OrderSuccessModalProps {
 export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onClose }) => {
   const { isSignedIn } = useAppUser();
   const [paymentProof, setPaymentProof] = useState<string>('');
+  const [isUploading, setIsUploading] = useState(false);
   const [showNotificationToast, setShowNotificationToast] = useState(false);
 
   if (!order) return null;
@@ -48,7 +49,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
           const canvas = document.createElement('canvas');
           let width = img.width;
           let height = img.height;
-          const maxDim = 1200;
+          const maxDim = 900;
           if (width > maxDim || height > maxDim) {
             if (width > height) {
               height = Math.round((height * maxDim) / width);
@@ -63,7 +64,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
           const ctx = canvas.getContext('2d');
           if (ctx) {
             ctx.drawImage(img, 0, 0, width, height);
-            resolve(canvas.toDataURL('image/jpeg', 0.8));
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
           } else {
             resolve(ev.target?.result as string);
           }
@@ -80,22 +81,30 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Ukuran file maksimal 10MB. Silakan pilih foto bukti lain.');
+    if (file.size > 15 * 1024 * 1024) {
+      alert('Ukuran file maksimal 15MB. Silakan pilih foto bukti lain.');
       return;
     }
 
-    const base64 = await compressImage(file);
-    if (base64) {
-      setPaymentProof(base64);
-      // Immediately sync to global store & cloud so admin sees it right away
-      updateOrderPaymentProof(order.id, base64);
+    try {
+      setIsUploading(true);
+      const base64 = await compressImage(file);
+      if (base64) {
+        setPaymentProof(base64);
+        // Immediately sync to global store & cloud so admin sees it right away
+        await updateOrderPaymentProof(order.id, base64);
+      }
+    } catch (err) {
+      console.error('Gagal memproses bukti bayar:', err);
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleKirimBukti = () => {
+  const handleKirimBukti = async () => {
+    if (isUploading) return;
     if (paymentProof) {
-      updateOrderPaymentProof(order.id, paymentProof);
+      await updateOrderPaymentProof(order.id, paymentProof);
     }
     // 8. Tampilkan popout kecil pemberitahuan: "pesanan berhasil dikirim dan dibuat, mohon tunggu"
     setShowNotificationToast(true);
@@ -316,6 +325,11 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
                   </button>
                 </div>
               </div>
+            ) : isUploading ? (
+              <div className="border-2 border-dashed border-[#C2652A] rounded-xl p-4 flex items-center justify-center gap-2.5 bg-[#FAF5EE] text-xs text-[#C2652A]">
+                <div className="w-4 h-4 border-2 border-[#C2652A] border-t-transparent rounded-full animate-spin" />
+                <span className="font-semibold">Mengompresi & mengunggah bukti pembayaran...</span>
+              </div>
             ) : (
               <label className="border-2 border-dashed border-[#D8D0C8] hover:border-[#C2652A] rounded-xl p-3.5 flex items-center justify-center gap-2.5 cursor-pointer bg-[#FAF5EE] hover:bg-white transition-all text-xs text-[#605850] group">
                 <Upload size={16} className="text-[#C2652A]" />
@@ -338,16 +352,27 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
           <div className="space-y-2">
             <button
               type="button"
+              disabled={isUploading}
               onClick={handleKirimBukti}
-              className="w-full py-3.5 px-4 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs uppercase tracking-wider font-bold text-center shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-[#C2652A] hover:bg-[#A95420] disabled:bg-[#D8D0C8] disabled:cursor-not-allowed text-white text-xs uppercase tracking-wider font-bold text-center shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
             >
-              <CheckCircle2 size={16} />
-              <span>Kirim Bukti Pembayaran</span>
+              {isUploading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Mengunggah Bukti...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 size={16} />
+                  <span>Kirim Bukti Pembayaran</span>
+                </>
+              )}
             </button>
             <button
               type="button"
+              disabled={isUploading}
               onClick={handleKirimBukti}
-              className="w-full text-center text-xs text-[#9A9088] hover:text-[#3A302A] transition-colors py-1"
+              className="w-full text-center text-xs text-[#9A9088] hover:text-[#3A302A] transition-colors py-1 disabled:opacity-50"
             >
               Selesaikan & Konfirmasi Pesanan
             </button>
