@@ -2,19 +2,24 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Search, Plus, Coffee, Sparkles } from 'lucide-react';
+import { Search, Plus, Coffee, Sparkles, Edit2 } from 'lucide-react';
 import { getStoredProducts, isProductAvailable } from '@/lib/store';
 import { CategoryType, Product } from '@/types';
 import { useCart } from '@/context/CartContext';
+import { useAdminAuth } from '@/lib/admin';
+import { EditProductModal } from '@/components/admin/EditProductModal';
 
 const CATEGORIES: CategoryType[] = ['Semua', 'Kopi', 'Makanan', 'Camilan', 'Minuman'];
 
 export default function MenuPage() {
   const { addItem, setIsDrawerOpen } = useCart();
+  const { isAdmin } = useAdminAuth();
   const [products, setProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('Semua');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOptions, setSelectedOptions] = useState<Record<string, 'Panas' | 'Dingin'>>({});
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   React.useEffect(() => {
     const sync = () => {
@@ -241,23 +246,38 @@ export default function MenuPage() {
                         </span>
                       </div>
 
-                      <button
-                        disabled={!available}
-                        onClick={() => {
-                          if (!available) return;
-                          addItem(product, currentOption);
-                          setIsDrawerOpen(true);
-                        }}
-                        className={`py-2 px-3.5 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all ${
-                          available
-                            ? 'bg-[#C2652A] hover:bg-[#A95420] text-white active:scale-95'
-                            : 'bg-[#D8D0C8] text-[#9A9088] cursor-not-allowed'
-                        }`}
-                        aria-label={`Pesan ${product.name}`}
-                      >
-                        <Plus size={14} className="stroke-[2.5]" />
-                        <span>{available ? 'Tambah' : 'Habis'}</span>
-                      </button>
+                      {isAdmin ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingProduct(product);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="py-2 px-3.5 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] active:scale-95"
+                          aria-label={`Edit ${product.name}`}
+                        >
+                          <Edit2 size={13} />
+                          <span>Edit Stok</span>
+                        </button>
+                      ) : (
+                        <button
+                          disabled={!available}
+                          onClick={() => {
+                            if (!available) return;
+                            addItem(product, currentOption);
+                            setIsDrawerOpen(true);
+                          }}
+                          className={`py-2 px-3.5 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all ${
+                            available
+                              ? 'bg-[#C2652A] hover:bg-[#A95420] text-white active:scale-95'
+                              : 'bg-[#D8D0C8] text-[#9A9088] cursor-not-allowed'
+                          }`}
+                          aria-label={`Pesan ${product.name}`}
+                        >
+                          <Plus size={14} className="stroke-[2.5]" />
+                          <span>{available ? 'Tambah' : 'Habis'}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -267,6 +287,16 @@ export default function MenuPage() {
         )}
 
       </div>
+
+      {/* Edit Product & Stock Modal for Admin */}
+      <EditProductModal
+        isOpen={isEditModalOpen}
+        product={editingProduct}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingProduct(null);
+        }}
+      />
     </div>
   );
 }

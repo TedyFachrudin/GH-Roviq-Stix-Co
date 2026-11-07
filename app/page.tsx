@@ -3,9 +3,11 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Coffee, Sparkles, Award, Clock, Heart, Plus } from 'lucide-react';
+import { ArrowRight, Coffee, Sparkles, Award, Clock, Heart, Plus, Edit2 } from 'lucide-react';
 import { Product } from '@/types';
 import { getStoredProducts } from '@/lib/store';
+import { useAdminAuth } from '@/lib/admin';
+import { EditProductModal } from '@/components/admin/EditProductModal';
 import { useCart } from '@/context/CartContext';
 import {
   Carousel,
@@ -19,7 +21,10 @@ import {
 
 export default function HomePage() {
   const { addItem, setIsDrawerOpen } = useCart();
+  const { isAdmin } = useAdminAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   useEffect(() => {
     const syncProducts = () => {
@@ -301,17 +306,32 @@ export default function HomePage() {
                         <span className="font-semibold text-sm text-[#3A302A]">
                           {formatRupiah(product.price)}
                         </span>
-                        <button
-                          onClick={() => {
-                            addItem(product);
-                            setIsDrawerOpen(true);
-                          }}
-                          className="p-2 rounded-lg bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] transition-all flex items-center gap-1.5 text-xs font-medium active:scale-95"
-                          aria-label={`Tambah ${product.name} ke keranjang`}
-                        >
-                          <Plus size={14} />
-                          <span>Pesan</span>
-                        </button>
+                        {isAdmin ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setEditingProduct(product);
+                              setIsEditModalOpen(true);
+                            }}
+                            className="p-2 rounded-lg bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] transition-all flex items-center gap-1.5 text-xs font-medium active:scale-95"
+                            aria-label={`Edit ${product.name}`}
+                          >
+                            <Edit2 size={13} />
+                            <span>Edit Stok</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => {
+                              addItem(product);
+                              setIsDrawerOpen(true);
+                            }}
+                            className="p-2 rounded-lg bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] transition-all flex items-center gap-1.5 text-xs font-medium active:scale-95"
+                            aria-label={`Tambah ${product.name} ke keranjang`}
+                          >
+                            <Plus size={14} />
+                            <span>Pesan</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -371,6 +391,16 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Edit Product & Stock Modal for Admin */}
+      <EditProductModal
+        isOpen={isEditModalOpen}
+        product={editingProduct}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingProduct(null);
+        }}
+      />
 
     </div>
   );
