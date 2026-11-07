@@ -1,4 +1,4 @@
-import { Product, OrderDetails, CategoryType } from '@/types';
+import { Product, OrderDetails, CategoryType, CartItem, OrderType, PaymentMethod } from '@/types';
 import { PRODUCTS } from './products-data';
 import { supabase, isSupabaseConfigured } from './supabase';
 
@@ -294,6 +294,101 @@ export function updateOrderPaymentProof(orderId: string, proof: string): void {
 }
 
 /**
+ * Sanitizes any raw order object into a strictly valid and safe OrderDetails
+ */
+export function sanitizeOrder(order: any): OrderDetails {
+  const safeItems: CartItem[] = Array.isArray(order?.items)
+    ? order.items.map((it: any) => {
+        if (it?.product && typeof it.product === 'object') {
+          return {
+            product: {
+              id: String(it.product.id || 'prod'),
+              name: String(it.product.name || 'Menu Sajian'),
+              price: Number(it.product.price) || 0,
+              category: (it.product.category as CategoryType) || 'Kopi',
+              description: String(it.product.description || ''),
+              image:
+                it.product.image ||
+                'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
+            },
+            quantity: Math.max(1, Number(it.quantity) || 1),
+            selectedOption: it.selectedOption || undefined,
+            note: it.note || undefined,
+          };
+        }
+        return {
+          product: {
+            id: String(it?.id || it?.product_id || 'prod'),
+            name: String(it?.name || it?.product_name || 'Menu Sajian'),
+            price: Number(it?.price) || Number(it?.unit_price) || 0,
+            category: (it?.category as CategoryType) || 'Kopi',
+            description: String(it?.description || ''),
+            image:
+              it?.image ||
+              'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
+          },
+          quantity: Math.max(1, Number(it?.quantity) || 1),
+          selectedOption: it?.selected_option || it?.selectedOption || undefined,
+          note: it?.note || undefined,
+        };
+      })
+    : [];
+
+  const paymentMethod = (order?.paymentMethod || order?.payment_method || 'QRIS') as PaymentMethod;
+  const subtotal = Number(order?.subtotal) || 0;
+  const total = Number(order?.total) || subtotal;
+
+  return {
+    id: String(order?.id || `GHR-${Math.floor(1000 + Math.random() * 9000)}`),
+    customerName: String(order?.customerName || order?.customer_name || 'Pelanggan GH ROVIQ'),
+    customerPhone: String(order?.customerPhone || order?.customer_phone || '-'),
+    orderType: (order?.orderType || order?.order_type || 'Dine-in') as OrderType,
+    tableNumber: order?.tableNumber || order?.table_number || undefined,
+    paymentMethod,
+    items:
+      safeItems.length > 0
+        ? safeItems
+        : [
+            {
+              product: {
+                id: 'item-default',
+                name: `Pesanan (${paymentMethod})`,
+                price: total > 0 ? total : 25000,
+                category: 'Kopi',
+                description: 'Pesanan sajian GH ROVIQ Coffee & Kitchen',
+                image:
+                  'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
+              },
+              quantity: 1,
+            },
+          ],
+    subtotal,
+    tax: Number(order?.tax) || 0,
+    total,
+    createdAt: order?.createdAt || order?.created_at || new Date().toISOString(),
+    status: (order?.status as 'Menunggu' | 'Diproses' | 'Selesai') || 'Diproses',
+    queueNumber: String(order?.queueNumber || order?.queue_number || '#GH-01'),
+    paymentProof: order?.paymentProof || undefined,
+  };
+}
+
+/**
+ * Checks whether an order row is a system catalog synchronization record
+ */
+function isSystemCatalogOrder(o: any): boolean {
+  if (!o) return true;
+  const id = String(o.id || '');
+  const name = String(o.customerName || o.customer_name || '').toUpperCase();
+  const type = String(o.orderType || o.order_type || '');
+  return (
+    type === 'System' ||
+    id.startsWith('gh-cat-') ||
+    id === 'gh-system-catalog-state' ||
+    name.includes('CATALOG')
+  );
+}
+
+/**
  * Retrieves all incoming and past orders from global storage
  */
 export function getStoredOrders(): OrderDetails[] {
@@ -302,7 +397,12 @@ export function getStoredOrders(): OrderDetails[] {
     const raw = localStorage.getItem(ORDERS_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+
+    // Filter out any system catalog rows and sanitize items
+    return parsed
+      .filter((o) => !isSystemCatalogOrder(o))
+      .map((o) => sanitizeOrder(o));
   } catch {
     return [];
   }
@@ -314,7 +414,8 @@ export function getStoredOrders(): OrderDetails[] {
 export function saveStoredOrders(orders: OrderDetails[]): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+    const sanitized = orders.filter((o) => !isSystemCatalogOrder(o)).map(sanitizeOrder);
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(sanitized));
     window.dispatchEvent(new Event('gh_orders_updated'));
   } catch (e) {
     console.error('Failed to save orders:', e);
@@ -326,9 +427,10 @@ export function saveStoredOrders(orders: OrderDetails[]): void {
  */
 export function addGlobalOrder(order: OrderDetails): void {
   const current = getStoredOrders();
-  const updated = [order, ...current.filter((o) => o.id !== order.id)];
+  const safe = sanitizeOrder(order);
+  const updated = [safe, ...current.filter((o) => o.id !== safe.id)];
   saveStoredOrders(updated);
-  pushOrderToCloud(order).catch(() => {});
+  pushOrderToCloud(safe).catch(() => {});
 }
 
 /**
@@ -374,7 +476,7 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
     const { data: cloudOrders, error } = await supabase
       .from('orders')
       .select('*')
-      .neq('customer_name', SYNC_CATALOG_NAME)
+      .neq('order_type', 'System')
       .order('created_at', { ascending: false });
 
     if (error || !cloudOrders) {
@@ -382,9 +484,16 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
       return localOrders;
     }
 
+    // Filter out any system catalog rows
+    const validCloudOrders = cloudOrders.filter((row) => !isSystemCatalogOrder(row));
+
     // Identify orders that need fallback order_items lookup
-    const needItemsIds = cloudOrders
-      .filter((row) => !row.delivery_address || (!row.delivery_address.startsWith('{') && !row.delivery_address.startsWith('[')))
+    const needItemsIds = validCloudOrders
+      .filter(
+        (row) =>
+          !row.delivery_address ||
+          (!row.delivery_address.startsWith('{') && !row.delivery_address.startsWith('['))
+      )
       .map((row) => row.id);
 
     let itemsByOrderId: Record<string, any[]> = {};
@@ -405,7 +514,7 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
       }
     }
 
-    const mappedCloudOrders: OrderDetails[] = cloudOrders.map((row) => {
+    const mappedCloudOrders: OrderDetails[] = validCloudOrders.map((row) => {
       let items: any[] = [];
       let paymentProof: string | undefined = undefined;
 
@@ -419,7 +528,7 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
             if (typeof parsed.paymentProof === 'string') paymentProof = parsed.paymentProof;
           }
         } catch {
-          if (row.delivery_address.startsWith('data:image')) {
+          if (typeof row.delivery_address === 'string' && row.delivery_address.startsWith('data:image')) {
             paymentProof = row.delivery_address;
           }
         }
@@ -433,27 +542,12 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
             name: it.product_name || 'Pesanan',
             price: Number(it.unit_price) || 0,
             category: 'Kopi',
-            image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
+            image:
+              'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
           },
           quantity: Number(it.quantity) || 1,
           selectedOption: it.selected_option || undefined,
         }));
-      }
-
-      // If still empty, provide a safe fallback product item so UI won't fail
-      if (items.length === 0) {
-        items = [
-          {
-            product: {
-              id: 'order-item-default',
-              name: `Pesanan GH ROVIQ (${row.payment_method || 'Menu'})`,
-              price: Number(row.subtotal) || Number(row.total) || 0,
-              category: 'Kopi',
-              image: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
-            },
-            quantity: 1,
-          },
-        ];
       }
 
       // Check if local cache has payment proof
@@ -462,30 +556,30 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
         paymentProof = localMatch.paymentProof;
       }
 
-      return {
+      return sanitizeOrder({
         id: row.id,
-        customerName: row.customer_name || 'Tamu GH ROVIQ',
-        customerPhone: row.customer_phone || '-',
-        orderType: row.order_type || 'Dine-in',
+        customerName: row.customer_name,
+        customerPhone: row.customer_phone,
+        orderType: row.order_type,
         tableNumber: row.table_number || undefined,
-        paymentMethod: row.payment_method || 'QRIS',
+        paymentMethod: row.payment_method,
         items,
         subtotal: Number(row.subtotal) || 0,
         tax: Number(row.tax) || 0,
         total: Number(row.total) || 0,
-        createdAt: row.created_at || new Date().toISOString(),
-        status: row.status || 'Diproses',
-        queueNumber: row.queue_number || '#GH-01',
+        createdAt: row.created_at,
+        status: row.status,
+        queueNumber: row.queue_number,
         paymentProof,
-      };
+      });
     });
 
     // Merge cloud orders with any local orders not yet reflected in cloud
     const cloudIds = new Set(mappedCloudOrders.map((o) => o.id));
     const merged = [...mappedCloudOrders];
     for (const lo of localOrders) {
-      if (!cloudIds.has(lo.id)) {
-        merged.push(lo);
+      if (!cloudIds.has(lo.id) && !isSystemCatalogOrder(lo)) {
+        merged.push(sanitizeOrder(lo));
       }
     }
 
@@ -579,8 +673,9 @@ export function calculateOmsetStats(timeframe: 'today' | 'week' | 'month' = 'tod
     }
 
     o.items?.forEach((item) => {
-      const cat = item.product?.category || 'Kopi';
-      const itemSubtotal = (item.product?.price || 0) * (item.quantity || 1);
+      const cat = item?.product?.category || (item as any)?.category || 'Kopi';
+      const itemPrice = item?.product?.price ?? (item as any)?.price ?? 0;
+      const itemSubtotal = itemPrice * (item?.quantity || 1);
       categoryMap[cat] = (categoryMap[cat] || 0) + itemSubtotal;
     });
   });

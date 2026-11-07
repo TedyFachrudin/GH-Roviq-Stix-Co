@@ -115,13 +115,15 @@ export default function AdminPesananPage() {
   const processingCount = orders.filter((o) => o.status === 'Diproses').length;
   const completedCount = orders.filter((o) => o.status === 'Selesai').length;
 
-  // Filtered orders
+  // Filtered orders with strict null-safety
   const filteredOrders = useMemo(() => {
+    const q = (searchQuery || '').trim().toLowerCase();
     return orders.filter((o) => {
-      const matchSearch =
-        o.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        o.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (o.queueNumber && o.queueNumber.toLowerCase().includes(searchQuery.toLowerCase()));
+      if (!o) return false;
+      const idMatch = (o.id || '').toLowerCase().includes(q);
+      const nameMatch = (o.customerName || '').toLowerCase().includes(q);
+      const queueMatch = (o.queueNumber || '').toLowerCase().includes(q);
+      const matchSearch = !q || idMatch || nameMatch || queueMatch;
 
       const matchType = selectedType === 'Semua' || o.orderType === selectedType;
       const matchStatus = selectedStatus === 'Semua' || o.status === selectedStatus;
@@ -362,10 +364,12 @@ export default function AdminPesananPage() {
                       <span className="text-[11px] text-[#9A9088] flex items-center gap-1">
                         <Clock size={11} />
                         <span>
-                          {new Date(order.createdAt).toLocaleTimeString('id-ID', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {order.createdAt
+                            ? new Date(order.createdAt).toLocaleTimeString('id-ID', {
+                                hour: '2-digit',
+                                minute: '2-digit',
+                              })
+                            : '-'}
                         </span>
                       </span>
                     </div>
@@ -379,39 +383,47 @@ export default function AdminPesananPage() {
                     </span>
 
                     <div className="space-y-2">
-                      {order.items?.map((item, idx) => (
-                        <div
-                          key={idx}
-                          className="p-3.5 sm:p-4 rounded-xl bg-[#F2ECE4] border border-[#E8E2D9] flex items-center justify-between gap-4 text-xs"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="w-6 h-6 rounded-md bg-white text-[#C2652A] font-bold text-xs flex items-center justify-center border border-[#D8D0C8]">
-                              {item.quantity}x
-                            </span>
-                            <div>
-                              <div className="font-serif font-bold text-[#3A302A]">
-                                {item.product.name}
-                              </div>
-                              <div className="flex items-center gap-2 text-[11px] text-[#605850] mt-0.5">
-                                {item.selectedOption && (
-                                  <span className="font-medium text-[#C2652A]">
-                                    [{item.selectedOption}]
-                                  </span>
-                                )}
-                                {item.note && (
-                                  <span className="italic">
-                                    Catatan: &ldquo;{item.note}&rdquo;
-                                  </span>
-                                )}
+                      {order.items?.map((item, idx) => {
+                        const productName =
+                          item?.product?.name || (item as any)?.name || 'Menu Sajian';
+                        const productPrice =
+                          item?.product?.price ?? (item as any)?.price ?? 0;
+                        const quantity = item?.quantity || 1;
+
+                        return (
+                          <div
+                            key={idx}
+                            className="p-3.5 sm:p-4 rounded-xl bg-[#F2ECE4] border border-[#E8E2D9] flex items-center justify-between gap-4 text-xs"
+                          >
+                            <div className="flex items-center gap-3">
+                              <span className="w-6 h-6 rounded-md bg-white text-[#C2652A] font-bold text-xs flex items-center justify-center border border-[#D8D0C8]">
+                                {quantity}x
+                              </span>
+                              <div>
+                                <div className="font-serif font-bold text-[#3A302A]">
+                                  {productName}
+                                </div>
+                                <div className="flex items-center gap-2 text-[11px] text-[#605850] mt-0.5">
+                                  {item?.selectedOption && (
+                                    <span className="font-medium text-[#C2652A]">
+                                      [{item.selectedOption}]
+                                    </span>
+                                  )}
+                                  {item?.note && (
+                                    <span className="italic">
+                                      Catatan: &ldquo;{item.note}&rdquo;
+                                    </span>
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          <span className="font-semibold text-xs text-[#3A302A]">
-                            {formatRupiah((item.product.price || 0) * (item.quantity || 1))}
-                          </span>
-                        </div>
-                      ))}
+                            <span className="font-semibold text-xs text-[#3A302A]">
+                              {formatRupiah(productPrice * quantity)}
+                            </span>
+                          </div>
+                        );
+                      })}
                     </div>
                   </div>
 
