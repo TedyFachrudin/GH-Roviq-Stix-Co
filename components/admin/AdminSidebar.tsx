@@ -12,6 +12,7 @@ import {
   ExternalLink,
   ShieldCheck,
   ChevronRight,
+  Users,
 } from 'lucide-react';
 import { useAdminAuth } from '@/lib/admin';
 import { getStoredOrders } from '@/lib/store';
@@ -67,6 +68,12 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
       href: '/admin/omset',
       active: pathname === '/admin/omset',
       icon: TrendingUp,
+    },
+    {
+      label: 'Anggota Member',
+      href: '/admin/member',
+      active: pathname === '/admin/member',
+      icon: Users,
     },
   ];
 

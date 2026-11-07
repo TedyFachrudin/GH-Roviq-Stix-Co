@@ -18,7 +18,8 @@ import {
 import { useAppUser, AppSignOutButton } from '@/lib/auth';
 import { isAdminUser } from '@/lib/admin';
 import { LoyaltyCard } from '@/components/member/LoyaltyCard';
-import { getMemberQueueId } from '@/lib/member';
+import { getMemberQueueId, syncCurrentMember } from '@/lib/member';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { MemberProfile } from '@/types';
 
 export default function ProfilePage() {
@@ -43,17 +44,60 @@ export default function ProfilePage() {
       const qId = getMemberQueueId(user.id, false);
       setMemberId(qId);
 
+      // 1. Initial local load
       try {
         const savedStamps = localStorage.getItem(`gh_stamps_${user.id}`);
         const savedPoints = localStorage.getItem(`gh_points_${user.id}`);
         const savedOrders = localStorage.getItem(`gh_orders_${user.id}`);
 
-        setMemberStamps(savedStamps !== null ? Number(savedStamps) : 0);
-        setMemberPoints(savedPoints !== null ? Number(savedPoints) : 0);
+        if (savedStamps !== null) setMemberStamps(Number(savedStamps));
+        if (savedPoints !== null) setMemberPoints(Number(savedPoints));
         if (savedOrders) {
           setUserOrders(JSON.parse(savedOrders));
         }
       } catch {}
+
+      // 2. Cloud sync with Supabase members table
+      const doSync = () => {
+        syncCurrentMember(user).then((res) => {
+          setMemberStamps(res.stamps);
+          setMemberPoints(res.points);
+          if (res.memberId) setMemberId(res.memberId);
+        });
+      };
+      doSync();
+
+      // 3. Listen to local custom event when admin changes stamps
+      const handleCustomUpdate = (e: any) => {
+        if (!e?.detail || e.detail.clerkId === user.id || e.detail.memberId === qId) {
+          doSync();
+        }
+      };
+      window.addEventListener('gh_member_stamps_updated', handleCustomUpdate);
+      window.addEventListener('storage', doSync);
+
+      // 4. Realtime Supabase subscription on members table
+      let channel: any = null;
+      if (isSupabaseConfigured()) {
+        channel = supabase
+          .channel('member_profil_realtime_' + user.id)
+          .on(
+            'postgres_changes',
+            { event: '*', schema: 'public', table: 'members' },
+            () => {
+              doSync();
+            }
+          )
+          .subscribe();
+      }
+
+      return () => {
+        window.removeEventListener('gh_member_stamps_updated', handleCustomUpdate);
+        window.removeEventListener('storage', doSync);
+        if (channel) {
+          supabase.removeChannel(channel);
+        }
+      };
     }
   }, [user?.id]);
 
