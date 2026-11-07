@@ -9,14 +9,20 @@ import {
   Clock,
   CheckCircle2,
   ChefHat,
-  Coffee,
   Phone,
   AlertCircle,
-  Check,
-  ChevronRight,
-  Sparkles,
   Eye,
+  X,
+  ChevronDown,
+  ChevronLeftIcon,
+  ChevronRightIcon,
 } from 'lucide-react';
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+} from '@/components/ui/pagination';
 import { OrderDetails } from '@/types';
 import {
   getStoredOrders,
@@ -37,6 +43,10 @@ export default function AdminPesananPage() {
   const [selectedType, setSelectedType] = useState<string>('Semua');
   const [selectedStatus, setSelectedStatus] = useState<string>('Semua');
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedProofImage, setSelectedProofImage] = useState<string | null>(null);
+
+  const ITEMS_PER_PAGE = 3;
 
   // Protect Admin route
   useEffect(() => {
@@ -49,6 +59,11 @@ export default function AdminPesananPage() {
   const refreshOrders = () => {
     setOrders(getStoredOrders());
   };
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedType, selectedStatus]);
 
   // Load and subscribe to real-time cloud and local orders
   useEffect(() => {
@@ -132,9 +147,19 @@ export default function AdminPesananPage() {
     });
   }, [orders, searchQuery, selectedType, selectedStatus]);
 
+  // Paginated slice: maximum 3 accounts/orders per page
+  const totalPages = Math.ceil(filteredOrders.length / ITEMS_PER_PAGE) || 1;
+
+  const paginatedOrders = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredOrders.slice(start, start + ITEMS_PER_PAGE);
+  }, [filteredOrders, currentPage]);
+
   const handleStatusChange = (orderId: string, newStatus: 'Menunggu' | 'Diproses' | 'Selesai') => {
     updateOrderStatus(orderId, newStatus);
-    refreshOrders();
+    setOrders((prev) =>
+      prev.map((o) => (o.id === orderId ? { ...o, status: newStatus } : o))
+    );
   };
 
   if (isLoading || !isAdmin) {
@@ -305,7 +330,7 @@ export default function AdminPesananPage() {
           </div>
         ) : (
           <div className="space-y-6">
-            {filteredOrders.map((order) => {
+            {paginatedOrders.map((order) => {
               const isWaiting = order.status === 'Menunggu';
               const isProcessing = order.status === 'Diproses';
               const isCompleted = order.status === 'Selesai';
@@ -427,7 +452,47 @@ export default function AdminPesananPage() {
                     </div>
                   </div>
 
-                  {/* Card Bottom: Total Payment & Action Buttons matching SVG */}
+                  {/* Bukti Pembayaran Pelanggan (QRIS/Transfer) */}
+                  {order.paymentProof ? (
+                    <div className="p-3.5 rounded-2xl bg-white border border-[#E8E2D9] space-y-2.5 shadow-2xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 flex items-center gap-1.5">
+                          <CheckCircle2 size={13} className="text-emerald-600" />
+                          <span>Bukti Transfer QRIS Terlampir</span>
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setSelectedProofImage(order.paymentProof!)}
+                          className="text-[11px] font-semibold text-[#C2652A] hover:underline flex items-center gap-1 cursor-pointer"
+                        >
+                          <Eye size={12} />
+                          <span>Perbesar Foto</span>
+                        </button>
+                      </div>
+
+                      <div
+                        onClick={() => setSelectedProofImage(order.paymentProof!)}
+                        className="relative w-full max-w-[200px] h-28 rounded-xl overflow-hidden border border-[#D8D0C8] bg-[#FAF5EE] cursor-pointer group shadow-2xs hover:border-[#C2652A] transition-all"
+                      >
+                        <img
+                          src={order.paymentProof}
+                          alt="Bukti pembayaran pelanggan"
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        <div className="absolute inset-0 bg-black/35 opacity-0 group-hover:opacity-100 flex items-center justify-center text-white font-medium text-xs gap-1.5 transition-opacity">
+                          <Eye size={16} />
+                          <span>Klik Perbesar</span>
+                        </div>
+                      </div>
+                    </div>
+                  ) : order.paymentMethod === 'QRIS' ? (
+                    <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200/80 flex items-center gap-2 text-xs text-amber-800">
+                      <AlertCircle size={14} className="text-amber-600 shrink-0" />
+                      <span>Pelanggan memilih metode <strong>QRIS</strong>. Bukti bayar belum diunggah.</span>
+                    </div>
+                  ) : null}
+
+                  {/* Card Bottom: Total Payment & Status Dropdown Selector */}
                   <div className="pt-4 border-t border-[#E8E2D9] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     
                     {/* Payment Info */}
@@ -441,52 +506,37 @@ export default function AdminPesananPage() {
                       <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-white text-[#C2652A] border border-[#D8D0C8]">
                         {order.paymentMethod} • Lunas
                       </span>
-                      {order.paymentProof && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const w = window.open('');
-                            w?.document.write(`<html><head><title>Bukti Pembayaran - ${order.id}</title></head><body style="margin:0;background:#1a1a1a;display:flex;align-items:center;justify-content:center;min-height:100vh;"><img src="${order.paymentProof}" style="max-width:90%;max-height:90vh;border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.5);" /></body></html>`);
-                          }}
-                          className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 flex items-center gap-1 transition-colors cursor-pointer"
-                          title="Klik untuk melihat bukti transfer QRIS"
-                        >
-                          <Eye size={12} />
-                          <span>Bukti QRIS</span>
-                        </button>
-                      )}
                     </div>
 
-                    {/* Action Buttons matching SVG (fill: #C2652A & #3A302A) */}
+                    {/* Status Selector Dropdown */}
                     <div className="flex items-center gap-2.5">
-                      {isWaiting && (
-                        <button
-                          type="button"
-                          onClick={() => handleStatusChange(order.id, 'Diproses')}
-                          className="px-5 py-2.5 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
+                      <span className="text-[11px] font-semibold text-[#605850]">Status:</span>
+                      <div className="relative">
+                        <select
+                          value={order.status}
+                          onChange={(e) =>
+                            handleStatusChange(
+                              order.id,
+                              e.target.value as 'Menunggu' | 'Diproses' | 'Selesai'
+                            )
+                          }
+                          className={`appearance-none pl-3.5 pr-8 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#C2652A]/30 ${
+                            isWaiting
+                              ? 'bg-[#FFF3E0] text-[#E65100] border-[#FFE0B2]'
+                              : isProcessing
+                              ? 'bg-[#E3F2FD] text-[#1565C0] border-[#BBDEFB]'
+                              : 'bg-[#E8F5E9] text-[#2E7D32] border-[#C8E6C9]'
+                          }`}
                         >
-                          <ChefHat size={14} />
-                          <span>Terima & Proses Pesanan</span>
-                        </button>
-                      )}
-
-                      {isProcessing && (
-                        <button
-                          type="button"
-                          onClick={() => handleStatusChange(order.id, 'Selesai')}
-                          className="px-5 py-2.5 rounded-xl bg-[#3A302A] hover:bg-[#201A16] text-white text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all active:scale-95"
-                        >
-                          <CheckCircle2 size={14} className="text-[#A5D6A7]" />
-                          <span>Tandai Selesai & Sajikan</span>
-                        </button>
-                      )}
-
-                      {isCompleted && (
-                        <div className="px-4 py-2 rounded-xl bg-[#E8F5E9] text-[#2E7D32] border border-[#C8E6C9] text-xs font-semibold flex items-center gap-1.5">
-                          <Check size={14} />
-                          <span>Pesanan Telah Selesai</span>
-                        </div>
-                      )}
+                          <option value="Menunggu">⏳ Menunggu</option>
+                          <option value="Diproses">👨‍🍳 Diproses</option>
+                          <option value="Selesai">✅ Selesai</option>
+                        </select>
+                        <ChevronDown
+                          size={14}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none text-current opacity-70"
+                        />
+                      </div>
                     </div>
 
                   </div>
@@ -494,6 +544,101 @@ export default function AdminPesananPage() {
                 </div>
               );
             })}
+
+            {/* Pagination Component (Max 3 orders per page) */}
+            {totalPages > 1 && (
+              <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-[#E8E2D9]">
+                <p className="text-xs text-[#605850]">
+                  Menampilkan <span className="font-semibold text-[#3A302A]">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> -{' '}
+                  <span className="font-semibold text-[#3A302A]">
+                    {Math.min(currentPage * ITEMS_PER_PAGE, filteredOrders.length)}
+                  </span>{' '}
+                  dari <span className="font-semibold text-[#3A302A]">{filteredOrders.length}</span> pesanan
+                </p>
+
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        aria-label="Go to previous page"
+                        size="icon"
+                      >
+                        <ChevronLeftIcon className="size-4" />
+                      </PaginationLink>
+                    </PaginationItem>
+
+                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                      <PaginationItem key={page}>
+                        <PaginationLink
+                          onClick={() => setCurrentPage(page)}
+                          isActive={currentPage === page}
+                        >
+                          {page}
+                        </PaginationLink>
+                      </PaginationItem>
+                    ))}
+
+                    <PaginationItem>
+                      <PaginationLink
+                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        aria-label="Go to next page"
+                        size="icon"
+                      >
+                        <ChevronRightIcon className="size-4" />
+                      </PaginationLink>
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Lightbox Modal Bukti Pembayaran */}
+        {selectedProofImage && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs animate-in fade-in duration-200"
+            onClick={() => setSelectedProofImage(null)}
+          >
+            <div
+              className="relative max-w-2xl w-full bg-[#FAF5EE] border border-[#D8D0C8] rounded-3xl p-4 sm:p-6 shadow-2xl space-y-4 animate-in zoom-in-95 duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-[#E8E2D9]">
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-[#C2652A]">Pratinjau Bukti</span>
+                  <h4 className="font-serif text-lg font-bold text-[#3A302A]">Bukti Transfer Pembayaran Pelanggan</h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedProofImage(null)}
+                  className="p-2 rounded-xl text-[#9A9088] hover:text-[#3A302A] hover:bg-white transition-all cursor-pointer"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div className="max-h-[70vh] overflow-auto rounded-2xl border border-[#D8D0C8] bg-black/5 flex items-center justify-center p-2">
+                <img
+                  src={selectedProofImage}
+                  alt="Bukti pembayaran penuh"
+                  className="max-h-[65vh] w-auto object-contain rounded-xl shadow-xs"
+                />
+              </div>
+
+              <div className="flex items-center justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSelectedProofImage(null)}
+                  className="px-5 py-2.5 rounded-xl bg-[#3A302A] hover:bg-[#201A16] text-white text-xs font-semibold tracking-wide transition-all cursor-pointer"
+                >
+                  Tutup Pratinjau
+                </button>
+              </div>
+            </div>
           </div>
         )}
 

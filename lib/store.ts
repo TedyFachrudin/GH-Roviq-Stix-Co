@@ -267,6 +267,45 @@ export async function pushOrderToCloud(order: OrderDetails): Promise<boolean> {
   }
 }
 
+const STATUS_SYNC_NAME = '__ORDER_STATUS_SYNC__';
+const PROOF_SYNC_NAME = '__ORDER_PROOF_SYNC__';
+const STATUS_OVERRIDES_KEY = 'gh_roviq_status_overrides_v1';
+const PROOF_OVERRIDES_KEY = 'gh_roviq_proof_overrides_v1';
+
+export function getLocalStatusOverrides(): Record<string, 'Menunggu' | 'Diproses' | 'Selesai'> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(STATUS_OVERRIDES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveLocalStatusOverrides(map: Record<string, 'Menunggu' | 'Diproses' | 'Selesai'>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(STATUS_OVERRIDES_KEY, JSON.stringify(map));
+  } catch {}
+}
+
+export function getLocalProofOverrides(): Record<string, string> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem(PROOF_OVERRIDES_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch {
+    return {};
+  }
+}
+
+export function saveLocalProofOverrides(map: Record<string, string>): void {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PROOF_OVERRIDES_KEY, JSON.stringify(map));
+  } catch {}
+}
+
 /**
  * Updates order with uploaded payment proof and syncs to Supabase
  */
@@ -276,20 +315,34 @@ export function updateOrderPaymentProof(orderId: string, proof: string): void {
   if (index !== -1) {
     current[index].paymentProof = proof;
     saveStoredOrders([...current]);
+  }
 
-    if (isSupabaseConfigured()) {
-      const payload = JSON.stringify({
-        items: current[index].items || [],
-        paymentProof: proof,
-      });
-      (async () => {
-        try {
-          await supabase.from('orders').update({ delivery_address: payload }).eq('id', orderId);
-        } catch (err) {
-          console.warn('Supabase paymentProof update failed:', err);
-        }
-      })();
-    }
+  // Persist locally
+  const proofMap = getLocalProofOverrides();
+  proofMap[orderId] = proof;
+  saveLocalProofOverrides(proofMap);
+
+  // Sync proof to Supabase cloud via sync insert (which works under public insert policy)
+  if (isSupabaseConfigured()) {
+    (async () => {
+      try {
+        await supabase.from('orders').insert({
+          id: `gh-proof-${orderId}-${Date.now()}`,
+          customer_name: PROOF_SYNC_NAME,
+          customer_phone: '0',
+          order_type: 'System',
+          payment_method: 'System',
+          subtotal: 0,
+          tax: 0,
+          total: 0,
+          queue_number: '#SYS',
+          status: 'Menunggu',
+          delivery_address: JSON.stringify({ orderId, paymentProof: proof }),
+        });
+      } catch (err) {
+        console.warn('Supabase paymentProof sync insert failed:', err);
+      }
+    })();
   }
 }
 
@@ -383,8 +436,12 @@ function isSystemCatalogOrder(o: any): boolean {
   return (
     type === 'System' ||
     id.startsWith('gh-cat-') ||
+    id.startsWith('gh-stat-') ||
+    id.startsWith('gh-proof-') ||
     id === 'gh-system-catalog-state' ||
-    name.includes('CATALOG')
+    name.includes('CATALOG') ||
+    name.includes('STATUS_SYNC') ||
+    name.includes('PROOF_SYNC')
   );
 }
 
@@ -450,12 +507,30 @@ export function updateOrderStatus(
     saveStoredOrders([...current]);
   }
 
+  // Persist locally so status never reverts
+  const statusMap = getLocalStatusOverrides();
+  statusMap[orderId] = newStatus;
+  saveLocalStatusOverrides(statusMap);
+
+  // Sync to Supabase cloud via sync insert (works with public insert policy)
   if (isSupabaseConfigured()) {
     (async () => {
       try {
-        await supabase.from('orders').update({ status: newStatus }).eq('id', orderId);
+        await supabase.from('orders').insert({
+          id: `gh-stat-${orderId}-${Date.now()}`,
+          customer_name: STATUS_SYNC_NAME,
+          customer_phone: '0',
+          order_type: 'System',
+          payment_method: 'System',
+          subtotal: 0,
+          tax: 0,
+          total: 0,
+          queue_number: '#SYS',
+          status: newStatus,
+          delivery_address: JSON.stringify({ orderId, status: newStatus }),
+        });
       } catch (err) {
-        console.warn('Supabase status update failed:', err);
+        console.warn('Supabase status sync insert failed:', err);
       }
     })();
   }
@@ -473,19 +548,43 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
   if (!isSupabaseConfigured()) return localOrders;
 
   try {
-    const { data: cloudOrders, error } = await supabase
+    const { data: allRows, error } = await supabase
       .from('orders')
       .select('*')
-      .neq('order_type', 'System')
       .order('created_at', { ascending: false });
 
-    if (error || !cloudOrders) {
+    if (error || !allRows) {
       console.warn('Error fetching orders from Supabase:', error?.message);
       return localOrders;
     }
 
-    // Filter out any system catalog rows
-    const validCloudOrders = cloudOrders.filter((row) => !isSystemCatalogOrder(row));
+    // Extract status and proof overrides from cloud sync rows
+    const cloudStatusOverrides: Record<string, 'Menunggu' | 'Diproses' | 'Selesai'> = {};
+    const cloudProofOverrides: Record<string, string> = {};
+
+    allRows.forEach((row) => {
+      if (row.customer_name === STATUS_SYNC_NAME && row.delivery_address) {
+        try {
+          const parsed = JSON.parse(row.delivery_address);
+          if (parsed.orderId && parsed.status && !cloudStatusOverrides[parsed.orderId]) {
+            cloudStatusOverrides[parsed.orderId] = parsed.status;
+          }
+        } catch {}
+      } else if (row.customer_name === PROOF_SYNC_NAME && row.delivery_address) {
+        try {
+          const parsed = JSON.parse(row.delivery_address);
+          if (parsed.orderId && parsed.paymentProof && !cloudProofOverrides[parsed.orderId]) {
+            cloudProofOverrides[parsed.orderId] = parsed.paymentProof;
+          }
+        } catch {}
+      }
+    });
+
+    const localStatusMap = getLocalStatusOverrides();
+    const localProofMap = getLocalProofOverrides();
+
+    // Filter out any system catalog / sync rows for real customer orders
+    const validCloudOrders = allRows.filter((row) => !isSystemCatalogOrder(row));
 
     // Identify orders that need fallback order_items lookup
     const needItemsIds = validCloudOrders
@@ -542,6 +641,7 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
             name: it.product_name || 'Pesanan',
             price: Number(it.unit_price) || 0,
             category: 'Kopi',
+            description: '',
             image:
               'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=800&auto=format&fit=crop',
           },
@@ -550,11 +650,21 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
         }));
       }
 
-      // Check if local cache has payment proof
       const localMatch = localOrders.find((lo) => lo.id === row.id);
-      if (!paymentProof && localMatch?.paymentProof) {
-        paymentProof = localMatch.paymentProof;
-      }
+
+      // Determine final status: local admin selection > cloud sync override > row.status
+      const finalStatus =
+        localStatusMap[row.id] ||
+        cloudStatusOverrides[row.id] ||
+        (row.status as 'Menunggu' | 'Diproses' | 'Selesai') ||
+        'Diproses';
+
+      // Determine final payment proof: local proof > cloud sync override > row payload > local cache
+      const finalProof =
+        localProofMap[row.id] ||
+        cloudProofOverrides[row.id] ||
+        paymentProof ||
+        localMatch?.paymentProof;
 
       return sanitizeOrder({
         id: row.id,
@@ -568,9 +678,9 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
         tax: Number(row.tax) || 0,
         total: Number(row.total) || 0,
         createdAt: row.created_at,
-        status: row.status,
+        status: finalStatus,
         queueNumber: row.queue_number,
-        paymentProof,
+        paymentProof: finalProof,
       });
     });
 
