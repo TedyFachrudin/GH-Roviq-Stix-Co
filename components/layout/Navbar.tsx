@@ -11,10 +11,21 @@ import { BrandLogo } from '@/components/ui/BrandLogo';
 
 export const Navbar: React.FC = () => {
   const pathname = usePathname();
-  const { totalItems, setIsDrawerOpen } = useCart();
+  const { totalItems, setIsDrawerOpen, isDrawerOpen } = useCart();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const { user } = useAppUser();
   const isAdmin = isAdminUser(user);
+
+  let activeIndex = -1;
+  if (isDrawerOpen) {
+    activeIndex = 2;
+  } else if (pathname === '/') {
+    activeIndex = 0;
+  } else if (pathname === '/menu') {
+    activeIndex = 1;
+  } else if (pathname === '/profil' || pathname.startsWith('/sign-in')) {
+    activeIndex = 3;
+  }
 
   const navLinks = [
     { name: 'Beranda', href: '/' },
@@ -124,80 +135,160 @@ export const Navbar: React.FC = () => {
         </div>
       </header>
 
-    {/* Customer / Member Floating Liquid Glass Navigation Dock (Khusus Tampilan Mobile) */}
+    {/* Customer / Member Floating Liquid Glass Nav Pro (Khusus Tampilan Mobile) */}
     {!pathname.startsWith('/admin') && (
       <nav
-        aria-label="Liquid Glass Navigation Dock"
-        className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 
-          w-fit max-w-[calc(100%-1.5rem)]
-          rounded-full 
-          bg-[#FAF5EE]/90 
-          backdrop-blur-2xl backdrop-saturate-200 
-          border border-white/80 
-          shadow-[0_16px_40px_-8px_rgba(58,48,42,0.18),0_0_0_1px_rgba(255,255,255,0.7)_inset] 
-          p-1.5 sm:p-2 flex md:hidden items-center justify-center gap-1 sm:gap-1.5 
-          transition-all duration-300"
+        aria-label="Liquid Glass Nav Pro"
+        className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 flex md:hidden items-center p-2 rounded-full transition-all duration-300"
+        style={{
+          width: '272px',
+          height: '64px',
+          backdropFilter: 'blur(16px) saturate(180%) brightness(1.05)',
+          WebkitBackdropFilter: 'blur(16px) saturate(180%) brightness(1.05)',
+          backgroundColor: 'rgba(250, 245, 238, 0.78)',
+          boxShadow:
+            '0px 20px 48px -10px rgba(58, 48, 42, 0.22), 0px 6px 16px -2px rgba(58, 48, 42, 0.12), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.65)',
+        }}
       >
+        {/* Rim Light (Glass Edge Bezel Highlight from Framer Liquid Glass Nav Pro) */}
+        <div
+          className="absolute inset-0 rounded-full pointer-events-none"
+          style={{
+            boxShadow:
+              'inset 0px 2px 3px -1px rgba(255, 255, 255, 0.95), inset 0px -2px 3px -1px rgba(255, 255, 255, 0.8), inset 5px 0px 6px -3px rgba(255, 255, 255, 0.85), inset -5px 0px 6px -3px rgba(255, 255, 255, 0.85), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.35), inset 0px 0px 0px 4px rgba(255, 255, 255, 0.08), inset 0px 0px 14px 4px rgba(58, 48, 42, 0.08)',
+          }}
+        />
+
+        {/* Sliding Liquid Pill Highlight with Corner Spark Halos */}
+        <div
+          className="absolute top-2 left-2 w-[58px] h-[48px] rounded-[24px] pointer-events-none transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden"
+          style={{
+            transform: activeIndex >= 0 ? `translateX(${activeIndex * 64}px)` : 'translateX(0px)',
+            opacity: activeIndex >= 0 ? 1 : 0,
+            background: 'linear-gradient(180deg, #D97736 0%, #C2652A 55%, #A9521E 100%)',
+            boxShadow:
+              'inset 0px 1.5px 1.5px 0px rgba(255, 255, 255, 0.95), inset 0px -1px 1px 0px rgba(255, 255, 255, 0.4), inset 3px 0px 4px -2px rgba(255, 255, 255, 0.65), inset -3px 0px 4px -2px rgba(255, 255, 255, 0.65), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.25), 0px 8px 20px -3px rgba(194, 101, 42, 0.5)',
+          }}
+        >
+          {/* Spark BL Halo */}
+          <div
+            className="absolute left-[6px] bottom-0 w-[18px] h-[18px] rounded-full pointer-events-none"
+            style={{
+              backgroundColor: '#ffffff',
+              filter: 'blur(7px)',
+              WebkitFilter: 'blur(7px)',
+              opacity: 0.65,
+            }}
+          />
+          {/* Spark BL Core */}
+          <div
+            className="absolute left-[11px] bottom-[2px] w-[6px] h-[6px] rounded-full pointer-events-none"
+            style={{
+              backgroundColor: '#ffffff',
+              filter: 'blur(1.5px)',
+              WebkitFilter: 'blur(1.5px)',
+              opacity: 0.95,
+            }}
+          />
+          {/* Spark TR Halo */}
+          <div
+            className="absolute right-[8px] top-0 w-[14px] h-[14px] rounded-full pointer-events-none"
+            style={{
+              backgroundColor: '#ffffff',
+              filter: 'blur(5px)',
+              WebkitFilter: 'blur(5px)',
+              opacity: 0.55,
+            }}
+          />
+          {/* Spark TR Core */}
+          <div
+            className="absolute right-[11px] top-[2px] w-[5px] h-[5px] rounded-full pointer-events-none"
+            style={{
+              backgroundColor: '#ffffff',
+              filter: 'blur(1.5px)',
+              WebkitFilter: 'blur(1.5px)',
+              opacity: 0.9,
+            }}
+          />
+        </div>
+
+        {/* Tab 1: Beranda */}
         <Link
           href="/"
           title="Beranda"
           aria-label="Beranda"
-          className={`p-2.5 sm:p-3 rounded-full transition-all duration-200 active:scale-95 flex items-center justify-center ${
-            pathname === '/'
-              ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
-              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
-          }`}
+          className="relative z-10 w-[58px] h-[48px] rounded-[24px] flex items-center justify-center transition-all duration-200 active:scale-90"
         >
-          <Home size={19} className={pathname === '/' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
+          <Home
+            size={20}
+            className={`transition-all duration-200 ${
+              activeIndex === 0
+                ? 'text-white stroke-[2.4] drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] scale-105'
+                : 'text-[#605850] hover:text-[#3A302A] stroke-[1.8]'
+            }`}
+          />
         </Link>
 
+        {/* Tab 2: Menu */}
         <Link
           href="/menu"
           title="Menu"
           aria-label="Menu"
-          className={`p-2.5 sm:p-3 rounded-full transition-all duration-200 active:scale-95 flex items-center justify-center ${
-            pathname === '/menu'
-              ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
-              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
-          }`}
+          className="relative z-10 w-[58px] h-[48px] rounded-[24px] flex items-center justify-center transition-all duration-200 active:scale-90 ml-[6px]"
         >
-          <Coffee size={19} className={pathname === '/menu' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
+          <Coffee
+            size={20}
+            className={`transition-all duration-200 ${
+              activeIndex === 1
+                ? 'text-white stroke-[2.4] drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] scale-105'
+                : 'text-[#605850] hover:text-[#3A302A] stroke-[1.8]'
+            }`}
+          />
         </Link>
 
+        {/* Tab 3: Pesanan / Keranjang */}
         <button
           type="button"
           onClick={() => setIsDrawerOpen(true)}
           title="Pesanan / Keranjang"
           aria-label="Keranjang Belanja"
-          className="p-2.5 sm:p-3 rounded-full text-[#605850] hover:text-[#3A302A] hover:bg-white/50 transition-all duration-200 active:scale-95 relative flex items-center justify-center"
+          className="relative z-10 w-[58px] h-[48px] rounded-[24px] flex items-center justify-center transition-all duration-200 active:scale-90 ml-[6px]"
         >
           <div className="relative">
-            <ShoppingBag size={19} className="stroke-[1.8]" />
+            <ShoppingBag
+              size={20}
+              className={`transition-all duration-200 ${
+                activeIndex === 2
+                  ? 'text-white stroke-[2.4] drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] scale-105'
+                  : 'text-[#605850] hover:text-[#3A302A] stroke-[1.8]'
+              }`}
+            />
             {totalItems > 0 && (
-              <span className="absolute -top-1.5 -right-2 bg-[#C2652A] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-xs">
+              <span
+                className={`absolute -top-1.5 -right-2 text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-xs animate-pulse ${
+                  activeIndex === 2 ? 'bg-white text-[#C2652A]' : 'bg-[#C2652A] text-white'
+                }`}
+              >
                 {totalItems}
               </span>
             )}
           </div>
         </button>
 
+        {/* Tab 4: Member / Admin */}
         <Link
           href={isAdmin ? '/admin' : '/profil'}
           title={isAdmin ? 'Admin' : 'Member'}
           aria-label={isAdmin ? 'Admin' : 'Member'}
-          className={`p-2.5 sm:p-3 rounded-full transition-all duration-200 active:scale-95 flex items-center justify-center ${
-            pathname === '/profil' || pathname.startsWith('/sign-in')
-              ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
-              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
-          }`}
+          className="relative z-10 w-[58px] h-[48px] rounded-[24px] flex items-center justify-center transition-all duration-200 active:scale-90 ml-[6px]"
         >
           <User
-            size={19}
-            className={
-              pathname === '/profil' || pathname.startsWith('/sign-in')
-                ? 'stroke-[2.5]'
-                : 'stroke-[1.8]'
-            }
+            size={20}
+            className={`transition-all duration-200 ${
+              activeIndex === 3
+                ? 'text-white stroke-[2.4] drop-shadow-[0_1px_2px_rgba(0,0,0,0.25)] scale-105'
+                : 'text-[#605850] hover:text-[#3A302A] stroke-[1.8]'
+            }`}
           />
         </Link>
       </nav>
