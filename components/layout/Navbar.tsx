@@ -16,6 +16,12 @@ export const Navbar: React.FC = () => {
   const { user } = useAppUser();
   const isAdmin = isAdminUser(user);
 
+  const desktopItemRefs = React.useRef<(HTMLAnchorElement | null)[]>([]);
+  const [desktopIndicator, setDesktopIndicator] = React.useState<{
+    left: number;
+    width: number;
+  } | null>(null);
+
   let activeIndex = -1;
   if (isDrawerOpen) {
     activeIndex = 2;
@@ -36,6 +42,31 @@ export const Navbar: React.FC = () => {
     },
   ];
 
+  React.useEffect(() => {
+    const updateIndicator = () => {
+      const activeIdx = navLinks.findIndex(
+        (link) =>
+          pathname === link.href ||
+          (link.href === '/admin' && pathname.startsWith('/admin'))
+      );
+      if (activeIdx !== -1 && desktopItemRefs.current[activeIdx]) {
+        const el = desktopItemRefs.current[activeIdx];
+        if (el) {
+          setDesktopIndicator({
+            left: el.offsetLeft,
+            width: el.offsetWidth,
+          });
+        }
+      } else {
+        setDesktopIndicator(null);
+      }
+    };
+
+    updateIndicator();
+    window.addEventListener('resize', updateIndicator);
+    return () => window.removeEventListener('resize', updateIndicator);
+  }, [pathname, isAdmin]);
+
   return (
     <>
       {/* Floating Pill Top Header (Desktop & Mobile) */}
@@ -55,20 +86,100 @@ export const Navbar: React.FC = () => {
             </div>
           </Link>
 
-          {/* Desktop Navigation Pill Bar */}
-          <nav className="hidden md:flex items-center gap-1 p-1 rounded-full bg-white/40 border border-white/50 backdrop-blur-md shadow-2xs">
-            {navLinks.map((link) => {
+          {/* Desktop Navigation Pill Bar with Liquid Glass Nav Pro */}
+          <nav
+            aria-label="Liquid Glass Desktop Navigation"
+            className="hidden md:flex items-center relative p-1 rounded-full transition-all duration-300"
+            style={{
+              backdropFilter: 'blur(16px) saturate(180%) brightness(1.05)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%) brightness(1.05)',
+              backgroundColor: 'rgba(255, 255, 255, 0.45)',
+              boxShadow:
+                '0px 8px 24px -4px rgba(58, 48, 42, 0.08), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.7)',
+            }}
+          >
+            {/* Rim Light (Glass Edge Bezel Highlight from Framer Liquid Glass Nav Pro) */}
+            <div
+              className="absolute inset-0 rounded-full pointer-events-none"
+              style={{
+                boxShadow:
+                  'inset 0px 1.5px 2px -0.5px rgba(255, 255, 255, 0.95), inset 0px -1px 2px -0.5px rgba(255, 255, 255, 0.7), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.35), inset 0px 0px 8px 2px rgba(58, 48, 42, 0.04)',
+              }}
+            />
+
+            {/* Sliding Liquid Pill Highlight with Corner Spark Halos */}
+            {desktopIndicator && (
+              <div
+                className="absolute top-1 h-[calc(100%-8px)] rounded-full pointer-events-none transition-all duration-400 ease-[cubic-bezier(0.34,1.56,0.64,1)] overflow-hidden"
+                style={{
+                  left: `${desktopIndicator.left}px`,
+                  width: `${desktopIndicator.width}px`,
+                  background:
+                    'linear-gradient(180deg, #D97736 0%, #C2652A 55%, #A9521E 100%)',
+                  boxShadow:
+                    'inset 0px 1.5px 1.5px 0px rgba(255, 255, 255, 0.95), inset 0px -1px 1px 0px rgba(255, 255, 255, 0.4), inset 3px 0px 4px -2px rgba(255, 255, 255, 0.65), inset -3px 0px 4px -2px rgba(255, 255, 255, 0.65), inset 0px 0px 0px 1px rgba(255, 255, 255, 0.25), 0px 6px 16px -2px rgba(194, 101, 42, 0.4)',
+                }}
+              >
+                {/* Spark BL Halo */}
+                <div
+                  className="absolute left-[4px] bottom-0 w-[14px] h-[14px] rounded-full pointer-events-none"
+                  style={{
+                    backgroundColor: '#ffffff',
+                    filter: 'blur(6px)',
+                    WebkitFilter: 'blur(6px)',
+                    opacity: 0.65,
+                  }}
+                />
+                {/* Spark BL Core */}
+                <div
+                  className="absolute left-[8px] bottom-[2px] w-[5px] h-[5px] rounded-full pointer-events-none"
+                  style={{
+                    backgroundColor: '#ffffff',
+                    filter: 'blur(1.5px)',
+                    WebkitFilter: 'blur(1.5px)',
+                    opacity: 0.95,
+                  }}
+                />
+                {/* Spark TR Halo */}
+                <div
+                  className="absolute right-[6px] top-0 w-[12px] h-[12px] rounded-full pointer-events-none"
+                  style={{
+                    backgroundColor: '#ffffff',
+                    filter: 'blur(4px)',
+                    WebkitFilter: 'blur(4px)',
+                    opacity: 0.55,
+                  }}
+                />
+                {/* Spark TR Core */}
+                <div
+                  className="absolute right-[9px] top-[2px] w-[4px] h-[4px] rounded-full pointer-events-none"
+                  style={{
+                    backgroundColor: '#ffffff',
+                    filter: 'blur(1.5px)',
+                    WebkitFilter: 'blur(1.5px)',
+                    opacity: 0.9,
+                  }}
+                />
+              </div>
+            )}
+
+            {navLinks.map((link, idx) => {
               const isActive =
                 pathname === link.href ||
                 (link.href === '/admin' && pathname.startsWith('/admin'));
               return (
                 <Link
                   key={link.name}
+                  ref={(el) => {
+                    desktopItemRefs.current[idx] = el;
+                  }}
                   href={link.href}
-                  className={`text-xs tracking-wide transition-all px-4 py-1.5 rounded-full ${
+                  className={`relative z-10 text-xs tracking-wide transition-all duration-200 px-4 py-1.5 rounded-full whitespace-nowrap active:scale-95 ${
                     isActive
-                      ? 'bg-[#C2652A] text-white font-semibold shadow-xs'
-                      : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/60 font-medium'
+                      ? desktopIndicator
+                        ? 'text-white font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]'
+                        : 'bg-[#C2652A] text-white font-semibold shadow-xs'
+                      : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/40 font-medium'
                   }`}
                 >
                   {link.name}
