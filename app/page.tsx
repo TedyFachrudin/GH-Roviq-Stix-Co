@@ -30,6 +30,18 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+    setMousePos({ x, y });
+  };
+
+  const handleMouseLeave = () => {
+    setMousePos({ x: 0, y: 0 });
+  };
 
   useEffect(() => {
     const syncProducts = () => {
@@ -169,52 +181,99 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Hero Visual Composition with Rotating Badge */}
-          <div className="relative mt-8 sm:mt-12">
-            <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full rounded-[28px] sm:rounded-[44px] overflow-hidden border border-[#D8D0C8] shadow-2xl bg-[#EAE4DA]">
+          {/* Hero Visual 3D Composition with Interactive Parallax */}
+          <div
+            className="relative mt-8 sm:mt-12 w-full rounded-[32px] sm:rounded-[48px] overflow-hidden border border-[#D8D0C8] shadow-2xl bg-gradient-to-b from-[#EAE4DA] via-[#F3EFEA] to-[#E2D8CA] min-h-[440px] sm:min-h-[540px] md:min-h-[600px] flex items-center justify-center p-6 sm:p-12 select-none group cursor-pointer"
+            onMouseMove={handleMouseMove}
+            onMouseLeave={handleMouseLeave}
+          >
+            {/* Subtle radial ambient warmth */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(221,159,87,0.18)_0%,transparent_70%)] pointer-events-none" />
+
+            {/* Background Graphic Watermark */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] select-none">
+              <span className="font-display font-bold text-[180px] sm:text-[320px] tracking-tighter uppercase text-[#010101]">
+                ROVIQ
+              </span>
+            </div>
+
+            {/* 3D Coffee Splash Layer (Behind Cup) */}
+            <div
+              className="absolute z-10 w-[340px] sm:w-[520px] md:w-[640px] aspect-square pointer-events-none select-none"
+              style={{
+                transform: `translate(${mousePos.x * -18}px, ${mousePos.y * -18}px) rotate(-6deg)`,
+                transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+              }}
+            >
               <Image
-                src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=85&w=1600&auto=format&fit=crop"
-                alt="GH ROVIQ Freshly Brewed Artisan Coffee"
+                src="/images/hero-splash-ghroviq.png"
+                alt="3D Coffee Splash and Beans"
                 fill
                 priority
-                className="object-cover object-center brightness-95 hover:scale-105 transition-transform duration-700 ease-out"
-                sizes="(max-width: 1280px) 100vw, 1280px"
+                className="object-contain filter drop-shadow-[0_20px_35px_rgba(126,65,36,0.22)]"
+                sizes="(max-width: 768px) 340px, (max-width: 1200px) 520px, 640px"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#010101]/60 via-transparent to-transparent pointer-events-none" />
+            </div>
 
-              {/* Floating Bottom Left Caption on Image */}
-              <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-auto max-w-md p-4 sm:p-5 rounded-[22px] bg-[#F3EFEA]/90 backdrop-blur-xl border border-white/80 shadow-card">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#7E4124]">
-                  Daily Speciality Coffee
-                </span>
-                <h3 className="font-display font-bold text-lg sm:text-xl text-[#010101] uppercase tracking-tight mt-0.5">
-                  Single Origin Arabica & Artisan Kitchen
-                </h3>
-                <p className="text-xs text-[#7A7269] line-clamp-1 mt-1 font-light">
-                  Diseduh segar dengan ketelitian gramatur & suhu terkalibrasi.
-                </p>
-              </div>
+            {/* 3D GH ROVIQ Paper Cup Layer (Front & Center) */}
+            <div
+              className="relative z-20 w-[170px] sm:w-[230px] md:w-[270px] aspect-[441/712] pointer-events-none select-none"
+              style={{
+                transform: `perspective(1000px) rotateX(${mousePos.y * -14}deg) rotateY(${mousePos.x * 14}deg) rotateZ(-12deg) scale(${1 + Math.abs(mousePos.x) * 0.03})`,
+                filter: 'drop-shadow(-28px 40px 32px rgba(58, 32, 16, 0.4)) drop-shadow(0 10px 16px rgba(0,0,0,0.15))',
+                transition: 'transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)',
+              }}
+            >
+              <Image
+                src="/images/hero-cup-ghroviq-cropped.png"
+                alt="GH ROVIQ STIX & CO 3D Artisan Coffee Cup"
+                fill
+                priority
+                className="object-contain"
+                sizes="(max-width: 768px) 170px, (max-width: 1200px) 230px, 270px"
+              />
+            </div>
 
-              {/* Rotating Circular Sticker Badge (Ferea Signature) */}
-              <div className="hidden sm:flex absolute top-6 right-6 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#010101]/85 backdrop-blur-md border border-white/20 text-[#F3EFEA] items-center justify-center shadow-xl select-none">
-                <svg
-                  className="w-full h-full animate-spin-slow p-1.5"
-                  viewBox="0 0 100 100"
-                  overflow="visible"
-                >
-                  <path
-                    id="badgeCircle"
-                    d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
-                    fill="none"
-                  />
-                  <text className="text-[9.5px] font-bold uppercase tracking-[2.6px] fill-[#F3EFEA]">
-                    <textPath href="#badgeCircle">
-                      • GH ROVIQ • 100% ARABICA • EST. 2026
-                    </textPath>
-                  </text>
-                </svg>
-                <Coffee size={20} className="absolute text-[#DD9F57]" />
-              </div>
+            {/* Floating Top Left Pill Badge */}
+            <div className="absolute top-4 sm:top-8 left-4 sm:left-8 z-30 flex items-center gap-2 p-2 sm:p-2.5 px-3.5 sm:px-4 rounded-full bg-[#F3EFEA]/85 backdrop-blur-md border border-white/80 shadow-card">
+              <span className="w-2 h-2 rounded-full bg-[#7E4124] animate-ping" />
+              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#010101]">
+                100% Arabica Beans
+              </span>
+            </div>
+
+            {/* Rotating Circular Sticker Badge (Top Right) */}
+            <div className="hidden sm:flex absolute top-6 right-6 z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#010101]/90 backdrop-blur-md border border-white/20 text-[#F3EFEA] items-center justify-center shadow-2xl select-none">
+              <svg
+                className="w-full h-full animate-spin-slow p-1.5"
+                viewBox="0 0 100 100"
+                overflow="visible"
+              >
+                <path
+                  id="badgeCircle"
+                  d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
+                  fill="none"
+                />
+                <text className="text-[9.5px] font-bold uppercase tracking-[2.6px] fill-[#F3EFEA]">
+                  <textPath href="#badgeCircle">
+                    • GH ROVIQ • 100% ARABICA • EST. 2026
+                  </textPath>
+                </text>
+              </svg>
+              <Coffee size={20} className="absolute text-[#DD9F57]" />
+            </div>
+
+            {/* Floating Bottom Left Caption on Hero */}
+            <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-auto z-30 max-w-sm sm:max-w-md p-4 sm:p-5 rounded-[22px] bg-[#F3EFEA]/90 backdrop-blur-xl border border-white/80 shadow-card">
+              <span className="text-[10px] font-bold uppercase tracking-widest text-[#7E4124]">
+                Daily Specialty Coffee
+              </span>
+              <h3 className="font-display font-bold text-lg sm:text-xl text-[#010101] uppercase tracking-tight mt-0.5">
+                Single Origin Arabica & Artisan Kitchen
+              </h3>
+              <p className="text-xs text-[#7A7269] line-clamp-1 mt-1 font-light">
+                Diseduh segar dengan ketelitian gramatur & suhu terkalibrasi.
+              </p>
             </div>
           </div>
 
