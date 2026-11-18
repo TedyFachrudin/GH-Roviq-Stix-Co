@@ -190,9 +190,6 @@ export default function HomePage() {
 
             {/* Right Column: Seamless 3D Cup + Splash Parallax (No Card, Large & Tilted) */}
             <div className="lg:col-span-5 xl:col-span-5 relative z-10 flex items-center justify-center min-h-[400px] sm:min-h-[520px] lg:min-h-[580px] xl:min-h-[640px] select-none py-6 lg:py-0">
-              
-              {/* Subtle Warm Ambient Glow */}
-              <div className="absolute w-[360px] sm:w-[480px] h-[360px] sm:h-[480px] rounded-full bg-[#DD9F57]/15 blur-3xl pointer-events-none" />
 
               {/* Rotating Circular Sticker Badge (Floating Top Right) */}
               <div className="hidden sm:flex absolute -top-4 right-2 lg:-top-6 lg:-right-4 z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#010101]/90 backdrop-blur-md border border-white/20 text-[#F3EFEA] items-center justify-center shadow-2xl select-none">
