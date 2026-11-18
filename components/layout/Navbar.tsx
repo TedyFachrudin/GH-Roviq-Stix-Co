@@ -135,67 +135,70 @@ export const Navbar: React.FC = () => {
           backdrop-blur-2xl backdrop-saturate-200 
           border border-white/80 
           shadow-[0_16px_40px_-8px_rgba(58,48,42,0.18),0_0_0_1px_rgba(255,255,255,0.7)_inset] 
-          p-1.5 sm:p-2 flex md:hidden items-center justify-center gap-1 sm:gap-2 
+          p-1.5 sm:p-2 flex md:hidden items-center justify-center gap-1 sm:gap-1.5 
           transition-all duration-300"
       >
         <Link
           href="/"
-          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 whitespace-nowrap ${
+          title="Beranda"
+          aria-label="Beranda"
+          className={`p-2.5 sm:p-3 rounded-full transition-all duration-200 active:scale-95 flex items-center justify-center ${
             pathname === '/'
               ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
               : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
           }`}
         >
-          <Home size={17} className={pathname === '/' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
-          <span>Beranda</span>
+          <Home size={19} className={pathname === '/' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
         </Link>
 
         <Link
           href="/menu"
-          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 whitespace-nowrap ${
+          title="Menu"
+          aria-label="Menu"
+          className={`p-2.5 sm:p-3 rounded-full transition-all duration-200 active:scale-95 flex items-center justify-center ${
             pathname === '/menu'
               ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
               : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
           }`}
         >
-          <Coffee size={17} className={pathname === '/menu' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
-          <span>Menu</span>
+          <Coffee size={19} className={pathname === '/menu' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
         </Link>
 
         <button
           type="button"
           onClick={() => setIsDrawerOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide text-[#605850] hover:text-[#3A302A] hover:bg-white/50 transition-all duration-200 active:scale-95 relative whitespace-nowrap"
+          title="Pesanan / Keranjang"
           aria-label="Keranjang Belanja"
+          className="p-2.5 sm:p-3 rounded-full text-[#605850] hover:text-[#3A302A] hover:bg-white/50 transition-all duration-200 active:scale-95 relative flex items-center justify-center"
         >
           <div className="relative">
-            <ShoppingBag size={17} className="stroke-[1.8]" />
+            <ShoppingBag size={19} className="stroke-[1.8]" />
             {totalItems > 0 && (
               <span className="absolute -top-1.5 -right-2 bg-[#C2652A] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse shadow-xs">
                 {totalItems}
               </span>
             )}
           </div>
-          <span>Pesanan</span>
         </button>
 
         <Link
           href={isAdmin ? '/admin' : '/profil'}
-          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 whitespace-nowrap ${
+          title={isAdmin ? 'Admin' : 'Member'}
+          aria-label={isAdmin ? 'Admin' : 'Member'}
+          className={`p-2.5 sm:p-3 rounded-full transition-all duration-200 active:scale-95 flex items-center justify-center ${
             pathname === '/profil' || pathname.startsWith('/sign-in')
               ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
               : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
           }`}
         >
           <User
-            size={17}
+            size={19}
             className={
               pathname === '/profil' || pathname.startsWith('/sign-in')
                 ? 'stroke-[2.5]'
                 : 'stroke-[1.8]'
             }
           />
-          <span>{isAdmin ? 'Admin' : 'Member'}</span>
         </Link>
       </nav>
     )}
