@@ -256,9 +256,6 @@ export default function HomePage() {
         </div>
       </section>
 
-        </div>
-      </section>
-
       {/* 2. INFINITE RUNNING TICKER MARQUEE (Ferea Style) */}
       <section className="bg-[#010101] text-[#F3EFEA] py-3.5 sm:py-4 overflow-hidden border-y border-[#010101] select-none shadow-sm">
         <div className="animate-marquee whitespace-nowrap flex items-center gap-6 text-xs sm:text-sm font-display font-bold uppercase tracking-[0.2em]">
