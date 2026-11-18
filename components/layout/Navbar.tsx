@@ -71,16 +71,16 @@ export const Navbar: React.FC = () => {
     <>
       {/* Floating Pill Top Header (Desktop & Mobile) */}
       <header className="sticky top-2 sm:top-4 z-40 w-[calc(100%-1.5rem)] sm:w-[calc(100%-2rem)] max-w-5xl mx-auto transition-all">
-        <div className="rounded-full bg-[#FAF5EE]/85 backdrop-blur-2xl backdrop-saturate-200 border border-white/80 shadow-[0_12px_36px_-6px_rgba(58,48,42,0.14),0_0_0_1px_rgba(255,255,255,0.7)_inset] px-4 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between">
+        <div className="rounded-full bg-[#F3EFEA]/85 backdrop-blur-2xl backdrop-saturate-200 border border-white/80 shadow-[0_12px_36px_-6px_rgba(1,1,1,0.1),0_0_0_1px_rgba(255,255,255,0.7)_inset] px-4 sm:px-6 py-2 sm:py-2.5 flex items-center justify-between">
           
           {/* Logo brand */}
           <Link href="/" className="flex items-center gap-2.5 group">
-            <BrandLogo size={34} className="w-[34px] h-[34px]" priority />
+            <BrandLogo size={36} className="w-[36px] h-[36px]" priority />
             <div className="flex flex-col">
-              <span className="font-serif text-base sm:text-lg font-bold tracking-tight text-[#3A302A] leading-tight">
+              <span className="font-display font-bold text-lg sm:text-xl tracking-tight text-[#010101] leading-none uppercase">
                 GH ROVIQ
               </span>
-              <span className="text-[9px] tracking-widest text-[#9A9088] uppercase font-sans">
+              <span className="text-[8.5px] tracking-widest text-[#7A7269] uppercase font-sans font-semibold mt-0.5">
                 Coffee & Kitchen
               </span>
             </div>

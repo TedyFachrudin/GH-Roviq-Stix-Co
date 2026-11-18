@@ -1,20 +1,23 @@
+@import url('https://fonts.googleapis.com/css2?family=Akshar:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: #FAF5EE;
-    --surface: #F6F0E8;
-    --foreground: #3A302A;
+    --background: #F3EFEA;
+    --surface: #EAE4DA;
+    --foreground: #010101;
     --terracotta: #C2652A;
+    --espresso: #7E4124;
     --coffee-border: #D8D0C8;
   }
 
   body {
     background-color: var(--background);
     color: var(--foreground);
-    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
@@ -26,20 +29,45 @@
     height: 6px;
   }
   ::-webkit-scrollbar-track {
-    background: #FAF5EE;
+    background: #F3EFEA;
   }
   ::-webkit-scrollbar-thumb {
     background: #D8D0C8;
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #C2652A;
+    background: #7E4124;
   }
+}
+
+/* Ferea animations */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 22s linear infinite;
 }
 
 /* Subtle texture & transitions */
 .bg-warm-canvas {
-  background-color: #FAF5EE;
+  background-color: #F3EFEA;
 }
 
 .text-espresso {

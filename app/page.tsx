@@ -3,22 +3,26 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, Coffee, Sparkles, Award, Clock, Heart, Plus, Edit2 } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUpRight,
+  Coffee,
+  Sparkles,
+  Award,
+  Clock,
+  Heart,
+  Plus,
+  Edit2,
+  CheckCircle2,
+  Flame,
+  Star,
+} from 'lucide-react';
 import { Product } from '@/types';
 import { getStoredProducts, syncCatalogWithCloud, saveStoredProducts } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { EditProductModal } from '@/components/admin/EditProductModal';
 import { useCart } from '@/context/CartContext';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselPrevious,
-  CarouselNext,
-  CarouselDots,
-  CarouselCounter,
-} from '@/components/ui/carousel';
 
 export default function HomePage() {
   const { addItem, setIsDrawerOpen } = useCart();
@@ -80,9 +84,10 @@ export default function HomePage() {
     };
   }, []);
 
-  const featuredProducts = products.filter((p) => p.badge === 'Terlaris' || p.badge).length > 0
-    ? products.filter((p) => p.badge === 'Terlaris' || p.badge).slice(0, 8)
-    : products.slice(0, 8);
+  const featuredProducts =
+    products.filter((p) => p.badge === 'Terlaris' || p.badge).length > 0
+      ? products.filter((p) => p.badge === 'Terlaris' || p.badge).slice(0, 8)
+      : products.slice(0, 8);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -93,338 +98,532 @@ export default function HomePage() {
   };
 
   return (
-    <div className="space-y-24 md:space-y-32">
+    <div className="space-y-20 sm:space-y-28 md:space-y-36 pb-20">
       
-      {/* Hero Section matching Landing Page.svg */}
-      <section className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
-            
-            {/* Left Column: Editorial Tagline */}
-            <div className="lg:col-span-7 space-y-6 md:space-y-8">
-              
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#F6F0E8] border border-[#E8E2D9] text-[#C2652A] text-xs font-medium tracking-wider uppercase">
-                <Sparkles size={13} />
-                <span>GH Roviq Stix & Co.</span>
-              </div>
-
-              <h1 className="font-serif text-4xl sm:text-5xl lg:text-6xl font-bold text-[#3A302A] leading-[1.15] tracking-tight">
-                Inhale the smoke, brew your coffee, and go about your day
-              </h1>
-
-              <p className="text-base sm:text-lg text-[#605850] max-w-xl leading-relaxed font-sans font-light">
-                Setiap cangkir kopi diseduh dari biji arabika terbaik Nusantara, bersanding dengan sajian dapur hangat yang diolah secara jujur dan bersahaja.
-              </p>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 pt-2">
-                <Link
-                  href="/menu"
-                  className="px-8 py-4 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-sm font-semibold tracking-wide flex items-center justify-center gap-2 shadow-sm transition-all group"
-                >
-                  <span>Eksplorasi Menu</span>
-                  <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
-                </Link>
-
-                <Link
-                  href="/profil"
-                  className="px-8 py-4 rounded-xl bg-[#F6F0E8] hover:bg-[#F2ECE4] border border-[#D8D0C8] text-[#3A302A] text-sm font-semibold tracking-wide flex items-center justify-center gap-2 transition-all"
-                >
-                  <Award size={18} className="text-[#C2652A]" />
-                  <span>Member & Loyalty Stamp</span>
-                </Link>
-              </div>
-
-              {/* Small metrics row */}
-              <div className="grid grid-cols-3 gap-6 pt-6 border-t border-[#E8E2D9] max-w-lg">
-                <div>
-                  <div className="font-serif text-2xl sm:text-3xl font-bold text-[#3A302A]">10</div>
-                  <div className="text-xs text-[#9A9088] uppercase tracking-wider mt-0.5">Stamp Gratis Kopi</div>
-                </div>
-                <div>
-                  <div className="font-serif text-2xl sm:text-3xl font-bold text-[#3A302A]">4.9★</div>
-                  <div className="text-xs text-[#9A9088] uppercase tracking-wider mt-0.5">Ulasan Pelanggan</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Column: Hero Visual composition */}
-            <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md lg:max-w-none">
-                
-                {/* Main Hero Photo */}
-                <div className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-[#D8D0C8] shadow-2xl bg-[#F6F0E8]">
-                  <Image
-                    src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=1000&auto=format&fit=crop"
-                    alt="Barista menyeduh kopi di GH ROVIQ"
-                    fill
-                    className="object-cover"
-                    priority
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#3A302A]/70 via-transparent to-transparent" />
-                  
-                  {/* Floating caption badge on image */}
-                  <div className="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-[#FAF5EE]/95 backdrop-blur-md border border-[#E8E2D9] text-[#3A302A] shadow-card">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <span className="text-[10px] text-[#C2652A] uppercase tracking-wider font-bold">
-                          {products.length > 0 ? 'Seduhan Spesial Hari Ini' : 'Artisan Coffee & Kitchen'}
-                        </span>
-                        <h4 className="font-serif text-base font-bold text-[#3A302A] mt-0.5">
-                          {products.length > 0 ? products[0].name : 'GH Roviq Stix & Co'}
-                        </h4>
-                      </div>
-                      <span className="text-sm font-bold text-[#3A302A] bg-[#F6F0E8] px-2.5 py-1 rounded-lg">
-                        {products.length > 0 ? formatRupiah(products[0].price) : 'Bandung'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Overlapping Stamp Card snippet */}
-                <div className="hidden sm:flex absolute -bottom-8 -left-8 p-4 rounded-2xl bg-[#3A302A] text-[#FAF5EE] border border-[#4E423A] shadow-xl items-center gap-3 max-w-xs animate-in fade-in duration-500">
-                  <div className="w-10 h-10 rounded-full bg-[#C2652A] text-white flex items-center justify-center font-bold">
-                    ✓
-                  </div>
-                  <div className="text-xs">
-                    <p className="font-semibold text-white">Loyalty Card Aktif</p>
-                    <p className="text-[#D8D0C8] text-[11px]">Kumpulkan 10 stamp untuk 1 kopi gratis.</p>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-
-          </div>
-        </div>
-      </section>
-
-      {/* Philosophy & Craftsmanship Section */}
-      <section className="bg-[#F6F0E8] py-20 border-y border-[#E8E2D9]">
+      {/* 1. HERO SECTION (Ferea Signature Bold Typographic Hero) */}
+      <section className="relative pt-8 sm:pt-14 md:pt-20 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          <div className="text-center max-w-2xl mx-auto space-y-3 mb-16">
-            <span className="text-xs font-semibold tracking-widest text-[#C2652A] uppercase">
-              Filosofi GH ROVIQ
+          {/* Top Tag & Pill */}
+          <div className="flex items-center gap-2 mb-4 sm:mb-6">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAE4DA] text-[#010101] text-[11px] font-bold uppercase tracking-wider font-sans">
+              <Sparkles size={12} className="text-[#7E4124]" />
+              <span>Artisan Coffee & Kitchen</span>
             </span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#3A302A]">
-              Dibuat Dengan Waktu, Disajikan Dengan Hati.
-            </h2>
-            <p className="text-[#605850] text-sm leading-relaxed font-sans">
-              Kami percaya bahwa secangkir kopi terbaik tercipta dari ketelitian proses dan ketulusan dalam setiap sentuhan.
-            </p>
+            <span className="text-xs text-[#7A7269] font-medium hidden sm:inline">
+              • Est. 2026 Bandung
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            
-            <div className="bg-[#FAF5EE] p-8 rounded-2xl border border-[#D8D0C8] space-y-4 hover:-translate-y-1 transition-transform">
-              <div className="w-12 h-12 rounded-xl bg-[#F7ECE4] text-[#C2652A] flex items-center justify-center">
-                <Coffee size={24} />
+          {/* Giant Display Headlines (Ferea Style) */}
+          <div className="space-y-1 sm:space-y-0">
+            <h1 className="font-display font-bold uppercase tracking-tighter text-[#010101] leading-[0.88] text-[64px] sm:text-[100px] md:text-[132px] lg:text-[168px] xl:text-[192px] select-none">
+              FRESHLY
+            </h1>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 className="font-display font-bold uppercase tracking-tighter text-[#7E4124] leading-[0.88] text-[64px] sm:text-[100px] md:text-[132px] lg:text-[168px] xl:text-[192px] select-none">
+                BREWED
+              </h2>
+              <div className="max-w-sm sm:text-right pt-2 sm:pt-0">
+                <p className="text-xs sm:text-sm text-[#7A7269] leading-relaxed font-sans font-light">
+                  Specialty coffee, and artisan kitchen made to brighten every day. Enjoy curated single origin, seasonal drinks & warm hospitality.
+                </p>
               </div>
-              <h3 className="font-serif text-xl font-bold text-[#3A302A]">
-                Kurasi Biji Kopi
-              </h3>
-              <p className="text-sm text-[#605850] leading-relaxed">
-                Hanya menggunakan biji arabika single origin dan house blend nusantara yang dipanggang segar setiap minggu untuk menjaga profil rasa optimal.
-              </p>
             </div>
-
-            <div className="bg-[#FAF5EE] p-8 rounded-2xl border border-[#D8D0C8] space-y-4 hover:-translate-y-1 transition-transform">
-              <div className="w-12 h-12 rounded-xl bg-[#F7ECE4] text-[#C2652A] flex items-center justify-center">
-                <Clock size={24} />
-              </div>
-              <h3 className="font-serif text-xl font-bold text-[#3A302A]">
-                Presisi Setiap Seduhan
-              </h3>
-              <p className="text-sm text-[#605850] leading-relaxed">
-                Tiap racikan ditakar dan diekstraksi dengan suhu serta rasio gramatur yang terkalibrasi harian, menghadirkan konsistensi rasa di tiap kunjungan.
-              </p>
-            </div>
-
-            <div className="bg-[#FAF5EE] p-8 rounded-2xl border border-[#D8D0C8] space-y-4 hover:-translate-y-1 transition-transform">
-              <div className="w-12 h-12 rounded-xl bg-[#F7ECE4] text-[#C2652A] flex items-center justify-center">
-                <Heart size={24} />
-              </div>
-              <h3 className="font-serif text-xl font-bold text-[#3A302A]">
-                Dapur Bersahaja
-              </h3>
-              <p className="text-sm text-[#605850] leading-relaxed">
-                Sajian pendamping dibuat segar dari bahan alami: roti sourdough artisan, pastry renyah, dan comfort food hangat tanpa perasa buatan.
-              </p>
-            </div>
-
           </div>
+
+          {/* Action Row & Subtitle */}
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-8 sm:pt-10 border-t border-[#EAE4DA] mt-8">
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/menu"
+                className="px-7 py-3.5 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-95 group"
+              >
+                <span>Order Now</span>
+                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+              </Link>
+              <Link
+                href="/profil"
+                className="px-7 py-3.5 rounded-full bg-white/70 hover:bg-white border border-[#D8D0C8] text-[#010101] text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-2xs"
+              >
+                <Award size={15} className="text-[#7E4124]" />
+                <span>Member & Loyalty Stamp</span>
+              </Link>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="flex items-center gap-6 sm:gap-8 pt-3 sm:pt-0 text-[#010101]">
+              <div className="flex items-center gap-2">
+                <span className="font-display font-bold text-2xl sm:text-3xl">10</span>
+                <span className="text-[11px] text-[#7A7269] uppercase font-sans tracking-wide leading-tight">
+                  Stamps<br />Free Coffee
+                </span>
+              </div>
+              <div className="w-px h-8 bg-[#D8D0C8]" />
+              <div className="flex items-center gap-2">
+                <span className="font-display font-bold text-2xl sm:text-3xl text-[#7E4124]">4.9★</span>
+                <span className="text-[11px] text-[#7A7269] uppercase font-sans tracking-wide leading-tight">
+                  Customer<br />Rating
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Hero Visual Composition with Rotating Badge */}
+          <div className="relative mt-8 sm:mt-12">
+            <div className="relative aspect-[16/9] sm:aspect-[21/9] w-full rounded-[28px] sm:rounded-[44px] overflow-hidden border border-[#D8D0C8] shadow-2xl bg-[#EAE4DA]">
+              <Image
+                src="https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=85&w=1600&auto=format&fit=crop"
+                alt="GH ROVIQ Freshly Brewed Artisan Coffee"
+                fill
+                priority
+                className="object-cover object-center brightness-95 hover:scale-105 transition-transform duration-700 ease-out"
+                sizes="(max-width: 1280px) 100vw, 1280px"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#010101]/60 via-transparent to-transparent pointer-events-none" />
+
+              {/* Floating Bottom Left Caption on Image */}
+              <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-auto max-w-md p-4 sm:p-5 rounded-[22px] bg-[#F3EFEA]/90 backdrop-blur-xl border border-white/80 shadow-card">
+                <span className="text-[10px] font-bold uppercase tracking-widest text-[#7E4124]">
+                  Daily Speciality Coffee
+                </span>
+                <h3 className="font-display font-bold text-lg sm:text-xl text-[#010101] uppercase tracking-tight mt-0.5">
+                  Single Origin Arabica & Artisan Kitchen
+                </h3>
+                <p className="text-xs text-[#7A7269] line-clamp-1 mt-1 font-light">
+                  Diseduh segar dengan ketelitian gramatur & suhu terkalibrasi.
+                </p>
+              </div>
+
+              {/* Rotating Circular Sticker Badge (Ferea Signature) */}
+              <div className="hidden sm:flex absolute top-6 right-6 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#010101]/85 backdrop-blur-md border border-white/20 text-[#F3EFEA] items-center justify-center shadow-xl select-none">
+                <svg
+                  className="w-full h-full animate-spin-slow p-1.5"
+                  viewBox="0 0 100 100"
+                  overflow="visible"
+                >
+                  <path
+                    id="badgeCircle"
+                    d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
+                    fill="none"
+                  />
+                  <text className="text-[9.5px] font-bold uppercase tracking-[2.6px] fill-[#F3EFEA]">
+                    <textPath href="#badgeCircle">
+                      • GH ROVIQ • 100% ARABICA • EST. 2026
+                    </textPath>
+                  </text>
+                </svg>
+                <Coffee size={20} className="absolute text-[#DD9F57]" />
+              </div>
+            </div>
+          </div>
+
         </div>
       </section>
 
-      {/* Featured Menu Preview */}
+      {/* 2. INFINITE RUNNING TICKER MARQUEE (Ferea Style) */}
+      <section className="bg-[#010101] text-[#F3EFEA] py-3.5 sm:py-4 overflow-hidden border-y border-[#010101] select-none shadow-sm">
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-6 text-xs sm:text-sm font-display font-bold uppercase tracking-[0.2em]">
+          <span>FRESHLY BREWED</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>SPECIALTY ARABICA</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>ARTISAN KITCHEN</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>WARM HOSPITALITY</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>SINGLE ORIGIN</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>DAILY MOMENTS</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>SOURDOUGH BITES</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>CRAFTED WITH CARE</span>
+          <span className="text-[#DD9F57]">•</span>
+          {/* Duplicate set for seamless continuous loop */}
+          <span>FRESHLY BREWED</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>SPECIALTY ARABICA</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>ARTISAN KITCHEN</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>WARM HOSPITALITY</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>SINGLE ORIGIN</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>DAILY MOMENTS</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>SOURDOUGH BITES</span>
+          <span className="text-[#DD9F57]">•</span>
+          <span>CRAFTED WITH CARE</span>
+          <span className="text-[#DD9F57]">•</span>
+        </div>
+      </section>
+
+      {/* 3. ABOUT US SECTION ("MORE THAN COFFEE, IT'S DAILY MOMENT") */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
-          <div>
-            <span className="text-xs font-semibold tracking-widest text-[#C2652A] uppercase">
-              Kurasi Menu Pilihan
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+          
+          {/* Left: Editorial Copy */}
+          <div className="lg:col-span-6 space-y-6">
+            <span className="text-[11px] font-bold tracking-widest text-[#7E4124] uppercase font-sans">
+              [ ABOUT GH ROVIQ ]
             </span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-bold text-[#3A302A] mt-1">
-              Menu Terlaris Musim Ini
+            <h2 className="font-display font-bold text-4xl sm:text-5xl lg:text-6xl uppercase tracking-tighter text-[#010101] leading-[0.95]">
+              MORE THAN COFFEE, <br />
+              <span className="text-[#7E4124]">IT’S A DAILY MOMENT.</span>
+            </h2>
+            <p className="text-sm sm:text-base text-[#7A7269] leading-relaxed font-sans font-light">
+              Di GH ROVIQ, kami percaya secangkir kopi terbaik tercipta dari ketelitian proses dan ketulusan dalam setiap sentuhan. Diseduh dari biji arabika terbaik Nusantara, bersanding dengan sajian dapur hangat yang diolah secara jujur dan bersahaja.
+            </p>
+
+            <div className="grid grid-cols-2 gap-4 pt-4 border-t border-[#EAE4DA]">
+              <div className="p-4 rounded-2xl bg-white border border-[#E7DFD3] space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E4124]">
+                  Koleksi Stamp
+                </span>
+                <p className="font-display font-bold text-xl text-[#010101]">10 STAMP = 1 GRATIS</p>
+                <p className="text-[11px] text-[#7A7269] font-light">Otomatis sync ke kartu profil digital.</p>
+              </div>
+              <div className="p-4 rounded-2xl bg-white border border-[#E7DFD3] space-y-1">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E4124]">
+                  Kualitas Seduh
+                </span>
+                <p className="font-display font-bold text-xl text-[#010101]">100% ARABIKA</p>
+                <p className="text-[11px] text-[#7A7269] font-light">Single origin & house blend segar.</p>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <Link
+                href="/menu"
+                className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#010101] hover:text-[#7E4124] transition-colors group"
+              >
+                <span>Pelajari Koleksi Menu Kami</span>
+                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform text-[#7E4124]" />
+              </Link>
+            </div>
+          </div>
+
+          {/* Right: 3-Photo Bento Strip */}
+          <div className="lg:col-span-6 grid grid-cols-2 gap-4">
+            <div className="relative aspect-[3/4] rounded-[24px] overflow-hidden border border-[#D8D0C8] shadow-md bg-[#EAE4DA]">
+              <Image
+                src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?q=80&w=800&auto=format&fit=crop"
+                alt="Barista menyeduh kopi V60"
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="space-y-4 flex flex-col justify-between">
+              <div className="relative aspect-square rounded-[24px] overflow-hidden border border-[#D8D0C8] shadow-md bg-[#EAE4DA]">
+                <Image
+                  src="https://images.unsplash.com/photo-1447933601403-0c6688de566e?q=80&w=800&auto=format&fit=crop"
+                  alt="Biji kopi arabika sangrai segar"
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+              <div className="relative aspect-square rounded-[24px] overflow-hidden border border-[#D8D0C8] shadow-md bg-[#EAE4DA]">
+                <Image
+                  src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=800&auto=format&fit=crop"
+                  alt="Pastry hangat dapur artisan"
+                  fill
+                  className="object-cover hover:scale-105 transition-transform duration-500"
+                />
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 4. FEATURED MENU SHOWCASE ("MADE WITH CARE, SERVED WITH HEART") */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4 border-b border-[#EAE4DA] pb-6">
+          <div>
+            <span className="text-[11px] font-bold tracking-widest text-[#7E4124] uppercase font-sans">
+              [ DRINKS & ARTISAN BITES ]
+            </span>
+            <h2 className="font-display font-bold text-3xl sm:text-5xl uppercase tracking-tighter text-[#010101] mt-1 leading-[0.95]">
+              MADE WITH CARE, <span className="text-[#7E4124]">SERVED WITH HEART.</span>
             </h2>
           </div>
           <Link
             href="/menu"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#C2652A] hover:text-[#A95420] transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white text-xs font-semibold uppercase tracking-wider transition-all duration-200 self-start md:self-auto"
           >
-            <span>Lihat Semua Menu</span>
-            <ArrowRight size={16} />
+            <span>Buka Semua Menu</span>
+            <ArrowUpRight size={14} />
           </Link>
         </div>
 
+        {/* Product Cards Grid (Ferea Style) */}
         {featuredProducts.length === 0 ? (
-          <div className="bg-white rounded-3xl border border-[#E8E2D9] p-8 sm:p-14 text-center max-w-2xl mx-auto space-y-5 shadow-sm">
-            <div className="w-16 h-16 rounded-full bg-[#F6F0E8] border border-[#E8E2D9] flex items-center justify-center text-[#C2652A] mx-auto shadow-inner">
+          <div className="bg-white rounded-[32px] border border-[#E7DFD3] p-10 sm:p-16 text-center max-w-xl mx-auto space-y-5 shadow-xs">
+            <div className="w-16 h-16 rounded-full bg-[#F3EFEA] border border-[#E7DFD3] flex items-center justify-center text-[#7E4124] mx-auto shadow-inner">
               <Coffee size={28} className="stroke-[1.75]" />
             </div>
             <div className="space-y-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F6F0E8] border border-[#E8E2D9] text-[#C2652A] text-[10px] font-bold uppercase tracking-widest">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F3EFEA] border border-[#E7DFD3] text-[#7E4124] text-[10px] font-bold uppercase tracking-widest">
                 <Sparkles size={11} />
-                <span>Katalog Awal 0 Menu</span>
+                <span>Katalog Kosong</span>
               </span>
-              <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#3A302A]">
-                Menu Terlaris Masih 0 Data
+              <h3 className="font-display font-bold text-2xl text-[#010101] uppercase tracking-tight">
+                Menu Terlaris Sedang Dipersiapkan
               </h3>
-              <p className="text-xs sm:text-sm text-[#605850] max-w-md mx-auto leading-relaxed font-light">
-                Saat ini belum ada produk yang didaftarkan ke menu terlaris. Barista dan dapur kami sedang menyiapkan racikan kopi dan sajian artisan terbaik.
+              <p className="text-xs sm:text-sm text-[#7A7269] max-w-md mx-auto leading-relaxed font-light font-sans">
+                Saat ini belum ada produk dalam katalog. Anda dapat menambahkan menu melalui Portal Admin.
               </p>
             </div>
-            <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+            <div className="pt-2">
               <Link
                 href="/menu"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#F6F0E8] hover:bg-[#F2ECE4] border border-[#D8D0C8] text-xs font-semibold text-[#3A302A] transition-all"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#010101] text-white text-xs font-semibold uppercase tracking-wider transition-all hover:bg-[#7E4124]"
               >
-                <span>Buka Halaman Menu</span>
+                <span>Lihat Katalog Lengkap</span>
                 <ArrowRight size={14} />
               </Link>
             </div>
           </div>
         ) : (
-          <Carousel className="w-full">
-            <CarouselContent className="-ml-4 pb-2">
-              {featuredProducts.map((product) => (
-                <CarouselItem key={product.id} className="pl-4 basis-full sm:basis-1/2 lg:basis-1/3 xl:basis-1/4">
-                  <div className="h-full group bg-white rounded-2xl border border-[#E8E2D9] overflow-hidden flex flex-col justify-between hover:border-[#C2652A] transition-all duration-300 hover:shadow-card hover:-translate-y-1">
-                    {/* Product Image */}
-                    <div className="relative aspect-square w-full overflow-hidden bg-[#F6F0E8]">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        unoptimized={Boolean(product.image?.startsWith("data:"))}
-                        className="object-cover group-hover:scale-105 transition-transform duration-500"
-                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                      />
-                      {product.badge && (
-                        <span className="absolute top-3 left-3 bg-[#FAF5EE]/90 backdrop-blur-sm text-[#C2652A] text-[10px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-[#D8D0C8]">
-                          {product.badge}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
-                      <div className="space-y-1.5">
-                        <div className="flex items-center justify-between text-xs text-[#9A9088]">
-                          <span>{product.category}</span>
-                          <span>★ {product.rating || 4.9}</span>
-                        </div>
-                        <h3 className="font-serif text-base font-bold text-[#3A302A] line-clamp-1 group-hover:text-[#C2652A] transition-colors">
-                          {product.name}
-                        </h3>
-                        <p className="text-xs text-[#605850] line-clamp-2 leading-relaxed">
-                          {product.description}
-                        </p>
-                      </div>
-
-                      <div className="pt-3 border-t border-[#F6F0E8] flex items-center justify-between">
-                        <span className="font-semibold text-sm text-[#3A302A]">
-                          {formatRupiah(product.price)}
-                        </span>
-                        {isAdmin ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setEditingProduct(product);
-                              setIsEditModalOpen(true);
-                            }}
-                            className="p-2 rounded-lg bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] transition-all flex items-center gap-1.5 text-xs font-medium active:scale-95"
-                            aria-label={`Edit ${product.name}`}
-                          >
-                            <Edit2 size={13} />
-                            <span>Edit Stok</span>
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => {
-                              addItem(product);
-                              setIsDrawerOpen(true);
-                            }}
-                            className="p-2 rounded-lg bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] transition-all flex items-center gap-1.5 text-xs font-medium active:scale-95"
-                            aria-label={`Tambah ${product.name} ke keranjang`}
-                          >
-                            <Plus size={14} />
-                            <span>Pesan</span>
-                          </button>
-                        )}
-                      </div>
-                    </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {featuredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="group bg-white rounded-[26px] border border-[#E7DFD3] p-4 flex flex-col justify-between hover:border-[#7E4124] transition-all duration-300 hover:shadow-card hover:-translate-y-1"
+              >
+                {/* Product Image Box */}
+                <div className="relative aspect-square w-full rounded-[20px] overflow-hidden bg-[#F3EFEA] mb-4">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    unoptimized={Boolean(product.image?.startsWith('data:'))}
+                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                  />
+                  {product.badge && (
+                    <span className="absolute top-3 left-3 bg-[#010101]/85 backdrop-blur-sm text-white text-[9.5px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-white/20">
+                      {product.badge}
+                    </span>
+                  )}
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-bold text-[#010101] shadow-xs">
+                    ★ {product.rating || 4.9}
                   </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
+                </div>
 
-            <CarouselPrevious />
-            <CarouselNext />
+                {/* Info & Add Action */}
+                <div className="flex-1 flex flex-col justify-between space-y-3">
+                  <div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E4124]">
+                      {product.category}
+                    </span>
+                    <h3 className="font-display font-bold text-lg text-[#010101] uppercase tracking-tight line-clamp-1 group-hover:text-[#7E4124] transition-colors mt-0.5">
+                      {product.name}
+                    </h3>
+                    <p className="text-xs text-[#7A7269] line-clamp-2 leading-relaxed font-light mt-1 font-sans">
+                      {product.description}
+                    </p>
+                  </div>
 
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-6 px-1">
-              <CarouselDots />
-              <CarouselCounter />
-            </div>
-          </Carousel>
+                  <div className="pt-3 border-t border-[#F3EFEA] flex items-center justify-between">
+                    <div>
+                      <span className="text-[10px] text-[#7A7269] block font-sans">Harga</span>
+                      <span className="font-display font-bold text-base text-[#010101]">
+                        {formatRupiah(product.price)}
+                      </span>
+                    </div>
+
+                    {isAdmin ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingProduct(product);
+                          setIsEditModalOpen(true);
+                        }}
+                        className="px-3.5 py-2 rounded-full bg-[#EAE4DA] hover:bg-[#7E4124] text-[#010101] hover:text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1 active:scale-95"
+                      >
+                        <Edit2 size={12} />
+                        <span>Edit</span>
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          addItem(product);
+                          setIsDrawerOpen(true);
+                        }}
+                        className="px-4 py-2 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-2xs group-hover:bg-[#7E4124]"
+                      >
+                        <Plus size={13} className="stroke-[3]" />
+                        <span>Order</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </section>
 
-      {/* Member & Digital Loyalty Promo Banner */}
+      {/* 5. WHY CHOOSE US (3 Bento Feature Cards from Ferea) */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-[#3A302A] text-[#FAF5EE] p-8 sm:p-12 lg:p-16 relative overflow-hidden shadow-2xl">
+        <div className="text-center max-w-2xl mx-auto space-y-3 mb-12 sm:mb-16">
+          <span className="text-[11px] font-bold tracking-widest text-[#7E4124] uppercase font-sans">
+            [ WHY CHOOSE US ]
+          </span>
+          <h2 className="font-display font-bold text-3xl sm:text-5xl uppercase tracking-tighter text-[#010101] leading-[0.95]">
+            CRAFTED FOR YOUR <br />
+            <span className="text-[#7E4124]">EVERYDAY RITUAL.</span>
+          </h2>
+          <p className="text-xs sm:text-sm text-[#7A7269] leading-relaxed font-sans font-light">
+            Dari biji kopi pilihan hingga hidangan hangat yang jujur, kami merawat setiap detail dengan kualitas dan ketulusan hati.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           
-          <div className="absolute right-0 top-0 bottom-0 w-1/2 opacity-10 pointer-events-none">
-            <div className="w-full h-full font-serif text-[180px] font-bold flex items-center justify-center">
-              GH
+          {/* Card 1 */}
+          <div className="bg-white p-7 sm:p-8 rounded-[28px] border border-[#E7DFD3] space-y-5 hover:border-[#7E4124] transition-all hover:shadow-card hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-display font-bold text-3xl text-[#7E4124]">01</span>
+              <div className="w-10 h-10 rounded-full bg-[#F3EFEA] text-[#7E4124] flex items-center justify-center">
+                <Coffee size={20} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-display font-bold text-xl uppercase tracking-tight text-[#010101]">
+                Brewed with Intention
+              </h3>
+              <p className="text-xs sm:text-sm text-[#7A7269] leading-relaxed font-sans font-light">
+                Hanya biji arabika single origin dan house blend terbaik yang dipanggang segar. Diseduh dengan kalibrasi harian rasio gramatur serta suhu presisi.
+              </p>
             </div>
           </div>
 
-          <div className="max-w-xl space-y-6 relative z-10">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-[#FAF5EE] text-xs font-semibold uppercase tracking-wider">
-              <Award size={14} className="text-[#C2652A]" />
-              <span>Program Loyalitas GH ROVIQ</span>
+          {/* Card 2 */}
+          <div className="bg-white p-7 sm:p-8 rounded-[28px] border border-[#E7DFD3] space-y-5 hover:border-[#7E4124] transition-all hover:shadow-card hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-display font-bold text-3xl text-[#7E4124]">02</span>
+              <div className="w-10 h-10 rounded-full bg-[#F3EFEA] text-[#7E4124] flex items-center justify-center">
+                <Flame size={20} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-display font-bold text-xl uppercase tracking-tight text-[#010101]">
+                Honest Kitchen Comfort
+              </h3>
+              <p className="text-xs sm:text-sm text-[#7A7269] leading-relaxed font-sans font-light">
+                Sajian pendamping diolah segar dari dapur artisan: roti sourdough, pastry renyah, dan comfort food hangat tanpa kompromi bahan instan.
+              </p>
+            </div>
+          </div>
+
+          {/* Card 3 */}
+          <div className="bg-white p-7 sm:p-8 rounded-[28px] border border-[#E7DFD3] space-y-5 hover:border-[#7E4124] transition-all hover:shadow-card hover:-translate-y-1">
+            <div className="flex items-center justify-between">
+              <span className="font-display font-bold text-3xl text-[#7E4124]">03</span>
+              <div className="w-10 h-10 rounded-full bg-[#F3EFEA] text-[#7E4124] flex items-center justify-center">
+                <Award size={20} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h3 className="font-display font-bold text-xl uppercase tracking-tight text-[#010101]">
+                Warm Ambience & Rewards
+              </h3>
+              <p className="text-xs sm:text-sm text-[#7A7269] leading-relaxed font-sans font-light">
+                Ruang teduh untuk rehat dan berbincang santai, dilengkapi kartu stamp loyalitas digital untuk menikmati hadiah seduhan gratis di setiap kunjungan.
+              </p>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      {/* 6. AMBIENCE & SPACE ("OUR PLACE") */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-[32px] sm:rounded-[44px] bg-[#EAE4DA] border border-[#D8D0C8] p-6 sm:p-12 overflow-hidden">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+            <div>
+              <span className="text-[11px] font-bold tracking-widest text-[#7E4124] uppercase font-sans">
+                [ SANCTUARY FOR YOUR ROUTINE ]
+              </span>
+              <h2 className="font-display font-bold text-3xl sm:text-5xl uppercase tracking-tighter text-[#010101] mt-1 leading-[0.95]">
+                OUR COZY CORNER.
+              </h2>
+            </div>
+            <p className="text-xs sm:text-sm text-[#7A7269] max-w-sm font-sans font-light">
+              Nikmati aroma biji sangrai, alunan musik tenang, dan ruang duduk nyaman untuk bekerja atau rehat sejenak.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="relative aspect-[4/3] rounded-[22px] overflow-hidden shadow-xs">
+              <Image
+                src="https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?q=80&w=800&auto=format&fit=crop"
+                alt="Suasana kedai GH ROVIQ"
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="relative aspect-[4/3] rounded-[22px] overflow-hidden shadow-xs">
+              <Image
+                src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?q=80&w=800&auto=format&fit=crop"
+                alt="Meja seduh dan barista corner"
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="relative aspect-[4/3] rounded-[22px] overflow-hidden shadow-xs">
+              <Image
+                src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?q=80&w=800&auto=format&fit=crop"
+                alt="Secangkir kopi espresso hangat"
+                fill
+                className="object-cover hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. DIGITAL LOYALTY CARD BANNER (Ferea Dark Statement Card) */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="rounded-[32px] sm:rounded-[44px] bg-[#010101] text-[#F3EFEA] p-8 sm:p-14 lg:p-16 relative overflow-hidden shadow-2xl border border-white/10">
+          
+          {/* Ambient Glow */}
+          <div className="absolute right-0 top-0 w-80 h-80 bg-[#7E4124]/30 rounded-full blur-[90px] pointer-events-none" />
+
+          <div className="max-w-2xl space-y-6 relative z-10">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/10 border border-white/15 text-[#DD9F57] text-xs font-bold uppercase tracking-wider font-sans">
+              <Award size={14} />
+              <span>GH ROVIQ Digital Stamp</span>
             </div>
 
-            <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight">
-              Kumpulkan 10 Stamp, Nikmati 1 Kopi Pilihan Gratis.
+            <h2 className="font-display font-bold text-3xl sm:text-5xl lg:text-6xl uppercase tracking-tighter leading-[0.92] text-white">
+              KUMPULKAN 10 STAMP, <br />
+              <span className="text-[#DD9F57]">NIKMATI 1 KOPI GRATIS.</span>
             </h2>
 
-            <p className="text-[#D8D0C8] text-sm sm:text-base leading-relaxed font-sans font-light">
-              Daftar sebagai member dalam hitungan detik. Cukup scan QR code di kasir setiap kali bertransaksi untuk mengumpulkan stamp digital Anda.
+            <p className="text-xs sm:text-sm text-[#A89F95] leading-relaxed font-sans font-light max-w-lg">
+              Setiap kali memesan secangkir kopi, admin kasir kami dapat menambahkan stamp digital ke profil akun member Anda. Tanpa kartu fisik yang mudah hilang.
             </p>
 
-            <div className="pt-2 flex flex-col sm:flex-row gap-4">
+            <div className="pt-2 flex flex-col sm:flex-row gap-3">
               <Link
                 href="/profil"
-                className="px-6 py-3.5 rounded-xl bg-[#C2652A] hover:bg-[#A95420] text-white text-xs uppercase tracking-wider font-semibold text-center transition-colors"
+                className="px-7 py-3.5 rounded-full bg-[#DD9F57] hover:bg-[#c88d49] text-[#010101] text-xs font-bold uppercase tracking-wider text-center transition-all active:scale-95"
               >
-                Lihat Loyalty Card Saya
+                Cek Kartu Loyalty Saya
               </Link>
               <Link
                 href="/sign-up"
-                className="px-6 py-3.5 rounded-xl border border-white/20 hover:bg-white/10 text-white text-xs uppercase tracking-wider font-semibold text-center transition-colors"
+                className="px-7 py-3.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold uppercase tracking-wider text-center transition-all active:scale-95"
               >
-                Daftar Akun Member
+                Daftar Sebagai Member
               </Link>
             </div>
           </div>

@@ -9,20 +9,30 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        ferea: {
+          bg: "#F3EFEA",
+          surface: "#EAE4DA",
+          dark: "#010101",
+          espresso: "#7E4124",
+          caramel: "#AC6D36",
+          amber: "#DD9F57",
+          roasted: "#5B2207",
+          muted: "#7A7269",
+        },
         cream: {
-          DEFAULT: "#FAF5EE",
-          surface: "#F6F0E8",
-          dark: "#F2ECE4",
+          DEFAULT: "#F3EFEA",
+          surface: "#EAE4DA",
+          dark: "#E3DCCF",
         },
         espresso: {
-          DEFAULT: "#3A302A",
-          dark: "#201A16",
-          light: "#605850",
-          muted: "#9A9088",
+          DEFAULT: "#010101",
+          dark: "#000000",
+          light: "#7E4124",
+          muted: "#7A7269",
         },
         terracotta: {
-          DEFAULT: "#C2652A",
-          hover: "#A95420",
+          DEFAULT: "#7E4124",
+          hover: "#5B2207",
           light: "#F7ECE4",
           soft: "#FDEEE6",
         },
@@ -32,8 +42,9 @@ const config: Config = {
         },
       },
       fontFamily: {
+        display: ["'Akshar'", "'Fira Sans Extra Condensed'", "'Bebas Neue'", "sans-serif"],
         serif: ["Georgia", "Cambria", "Times New Roman", "serif"],
-        sans: ["Inter", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
+        sans: ["'Inter'", "-apple-system", "BlinkMacSystemFont", "Segoe UI", "Roboto", "sans-serif"],
       },
       boxShadow: {
         subtle: "0 2px 10px rgba(58, 48, 42, 0.05)",

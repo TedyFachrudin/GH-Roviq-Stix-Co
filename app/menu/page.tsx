@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Search, Plus, Coffee, Sparkles, Edit2 } from 'lucide-react';
 import { getStoredProducts, isProductAvailable, syncCatalogWithCloud, saveStoredProducts } from '@/lib/store';
@@ -26,7 +26,7 @@ export default function MenuPage() {
     return ['Semua', ...cats];
   }, [products]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const sync = () => {
       const stored = getStoredProducts();
       setProducts(stored);
@@ -105,38 +105,37 @@ export default function MenuPage() {
   }, [products, selectedCategory, searchQuery]);
 
   return (
-    <div className="py-10 sm:py-16 pb-24 md:pb-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 sm:space-y-12">
+    <div className="py-8 sm:py-14 pb-28 md:pb-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-12">
         
-        {/* Header matching Menu.svg */}
+        {/* Header (Ferea Editorial Style) */}
         <div className="text-center max-w-2xl mx-auto space-y-3">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F6F0E8] border border-[#E8E2D9] text-[#C2652A] text-xs font-semibold tracking-widest uppercase">
-            <Sparkles size={13} />
-            <span>Kurasi Cita Rasa</span>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAE4DA] text-[#010101] text-[11px] font-bold uppercase tracking-wider font-sans">
+            <Sparkles size={12} className="text-[#7E4124]" />
+            <span>Curated Artisan Menu</span>
           </div>
-          <h1 className="font-serif text-3xl sm:text-5xl font-bold text-[#3A302A] tracking-tight">
-            Menu GH ROVIQ
+          <h1 className="font-display font-bold uppercase tracking-tighter text-[#010101] leading-[0.88] text-4xl sm:text-6xl md:text-7xl">
+            OUR FRESH MENU
           </h1>
-          <p className="text-sm sm:text-base text-[#605850] font-sans font-light">
-            Dari racikan biji kopi arabika pilihan hingga kudapan hangat artisan, seluruhnya disiapkan dengan bahan murni terbaik.
+          <p className="text-xs sm:text-sm text-[#7A7269] font-sans font-light leading-relaxed max-w-lg mx-auto">
+            Dari racikan biji kopi arabika pilihan hingga kudapan hangat artisan, seluruhnya disiapkan segar dengan ketelitian dan bahan murni terbaik.
           </p>
         </div>
 
         {/* Search & Category Filter Controls */}
-        <div className="space-y-6">
-          
+        <div className="space-y-5">
           {/* Search bar */}
           <div className="max-w-md mx-auto relative">
             <Search
-              size={18}
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#9A9088]"
+              size={17}
+              className="absolute left-4 top-1/2 -translate-y-1/2 text-[#7A7269]"
             />
             <input
               type="text"
               placeholder="Cari kopi, makanan, atau minuman..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-11 pr-4 py-3 rounded-full bg-white border border-[#D8D0C8] text-[#3A302A] placeholder-[#9A9088] text-sm focus:outline-none focus:border-[#C2652A] transition-colors shadow-sm"
+              className="w-full pl-11 pr-4 py-3 rounded-full bg-white/90 border border-[#D8D0C8] text-[#010101] placeholder-[#7A7269] text-xs sm:text-sm focus:outline-none focus:border-[#010101] focus:ring-1 focus:ring-[#010101] transition-all shadow-2xs font-sans"
             />
           </div>
 
@@ -148,10 +147,10 @@ export default function MenuPage() {
                 <button
                   key={cat}
                   onClick={() => setSelectedCategory(cat)}
-                  className={`px-5 py-2.5 rounded-full text-xs font-medium uppercase tracking-wider transition-all whitespace-nowrap ${
+                  className={`px-5 py-2.5 rounded-full text-xs font-semibold uppercase tracking-wider transition-all whitespace-nowrap active:scale-95 ${
                     isSelected
-                      ? 'bg-[#C2652A] text-white shadow-sm font-semibold'
-                      : 'bg-[#F6F0E8] text-[#605850] hover:text-[#3A302A] hover:bg-[#F2ECE4] border border-[#E8E2D9]'
+                      ? 'bg-[#010101] text-white shadow-sm'
+                      : 'bg-white/70 hover:bg-white text-[#7A7269] hover:text-[#010101] border border-[#D8D0C8]'
                   }`}
                 >
                   {cat}
@@ -161,35 +160,35 @@ export default function MenuPage() {
           </div>
         </div>
 
-        {/* Product Grid matching Menu.svg */}
+        {/* Product Grid */}
         {products.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-[#E8E2D9] max-w-lg mx-auto p-8 sm:p-14 space-y-5 shadow-sm">
-            <div className="w-16 h-16 rounded-full bg-[#F6F0E8] border border-[#E8E2D9] flex items-center justify-center text-[#C2652A] mx-auto shadow-inner">
-              <Coffee size={32} className="stroke-[1.75]" />
+          <div className="text-center py-20 bg-white rounded-[28px] border border-[#D8D0C8] max-w-lg mx-auto p-8 sm:p-14 space-y-5 shadow-sm">
+            <div className="w-16 h-16 rounded-full bg-[#EAE4DA] flex items-center justify-center text-[#7E4124] mx-auto shadow-inner">
+              <Coffee size={30} className="stroke-[1.75]" />
             </div>
             <div className="space-y-2">
-              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#F6F0E8] text-[#C2652A] text-[10px] font-bold uppercase tracking-widest border border-[#E8E2D9]">
-                <Sparkles size={11} />
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#EAE4DA] text-[#010101] text-[10px] font-bold uppercase tracking-widest">
+                <Sparkles size={11} className="text-[#7E4124]" />
                 <span>Katalog Masih Kosong (0 Menu)</span>
               </span>
-              <h3 className="font-serif text-xl sm:text-2xl font-bold text-[#3A302A]">
+              <h3 className="font-display font-bold uppercase tracking-tight text-2xl text-[#010101]">
                 Belum Ada Menu Terdaftar
               </h3>
-              <p className="text-xs sm:text-sm text-[#605850] leading-relaxed max-w-md mx-auto font-light">
+              <p className="text-xs sm:text-sm text-[#7A7269] leading-relaxed max-w-md mx-auto font-light">
                 Seluruh daftar menu saat ini masih kosong (0 item). Produk baru akan segera ditambahkan oleh admin melalui portal manajemen katalog.
               </p>
             </div>
           </div>
         ) : filteredProducts.length === 0 ? (
-          <div className="text-center py-20 bg-white rounded-3xl border border-[#E8E2D9] max-w-md mx-auto p-8 space-y-4 shadow-sm">
-            <div className="w-16 h-16 rounded-full bg-[#F6F0E8] flex items-center justify-center text-[#9A9088] mx-auto">
-              <Coffee size={28} />
+          <div className="text-center py-16 bg-white rounded-[28px] border border-[#D8D0C8] max-w-md mx-auto p-8 space-y-4 shadow-sm">
+            <div className="w-14 h-14 rounded-full bg-[#EAE4DA] flex items-center justify-center text-[#7A7269] mx-auto">
+              <Coffee size={26} />
             </div>
             <div className="space-y-1">
-              <h3 className="font-serif text-lg font-bold text-[#3A302A]">
+              <h3 className="font-display font-bold uppercase tracking-tight text-xl text-[#010101]">
                 Menu Tidak Ditemukan
               </h3>
-              <p className="text-xs text-[#605850]">
+              <p className="text-xs text-[#7A7269] font-light">
                 Tidak ada menu yang cocok dengan kata kunci &ldquo;{searchQuery}&rdquo;.
               </p>
             </div>
@@ -198,13 +197,13 @@ export default function MenuPage() {
                 setSearchQuery('');
                 setSelectedCategory('Semua');
               }}
-              className="text-xs font-semibold text-[#C2652A] uppercase tracking-wider underline hover:text-[#A95420]"
+              className="text-xs font-bold text-[#7E4124] uppercase tracking-wider underline hover:text-[#010101] transition-colors"
             >
               Reset Filter
             </button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 sm:gap-6">
             {filteredProducts.map((product) => {
               const currentOption =
                 selectedOptions[product.id] ||
@@ -214,27 +213,27 @@ export default function MenuPage() {
               return (
                 <div
                   key={product.id}
-                  className={`group bg-white rounded-2xl border border-[#E8E2D9] overflow-hidden flex flex-col justify-between transition-all hover:shadow-card ${
-                    available ? 'hover:border-[#C2652A]' : 'opacity-70 grayscale-[20%]'
+                  className={`group bg-white rounded-[26px] border border-[#D8D0C8] overflow-hidden flex flex-col justify-between transition-all duration-300 hover:shadow-xl hover:border-[#010101] ${
+                    available ? '' : 'opacity-70 grayscale-[25%]'
                   }`}
                 >
                   {/* Image Container */}
-                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#F6F0E8]">
+                  <div className="relative aspect-[4/3] w-full overflow-hidden bg-[#EAE4DA]">
                     <Image
                       src={product.image}
                       alt={product.name}
                       fill
-                      unoptimized={Boolean(product.image?.startsWith("data:"))}
-                      className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      unoptimized={Boolean(product.image?.startsWith('data:'))}
+                      className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
                     {product.badge && available && (
-                      <span className="absolute top-3 left-3 bg-[#FAF5EE]/95 backdrop-blur-sm text-[#C2652A] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-[#D8D0C8] shadow-sm">
+                      <span className="absolute top-3 left-3 bg-[#F3EFEA]/95 backdrop-blur-sm text-[#7E4124] text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-[#D8D0C8] shadow-sm">
                         {product.badge}
                       </span>
                     )}
                     {!available && (
-                      <span className="absolute top-3 left-3 bg-[#3A302A]/90 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/20 shadow-sm">
+                      <span className="absolute top-3 left-3 bg-[#010101]/90 text-white text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border border-white/20 shadow-sm">
                         Stok Habis
                       </span>
                     )}
@@ -243,20 +242,22 @@ export default function MenuPage() {
                   {/* Body Info */}
                   <div className="p-5 flex-1 flex flex-col justify-between space-y-4">
                     <div className="space-y-2">
-                      <div className="flex items-center justify-between text-xs text-[#9A9088]">
-                        <span className="uppercase tracking-wider font-medium text-[10px]">
+                      <div className="flex items-center justify-between text-xs text-[#7A7269]">
+                        <span className="uppercase tracking-wider font-semibold text-[10px]">
                           {product.category}
                         </span>
                         {product.rating && (
-                          <span className="font-semibold text-[#3A302A]">★ {product.rating}</span>
+                          <span className="font-bold text-[#010101] text-xs">
+                            ★ {product.rating}
+                          </span>
                         )}
                       </div>
 
-                      <h3 className="font-serif text-lg font-bold text-[#3A302A] leading-snug group-hover:text-[#C2652A] transition-colors">
+                      <h3 className="font-display font-bold text-xl uppercase tracking-tight text-[#010101] leading-snug group-hover:text-[#7E4124] transition-colors">
                         {product.name}
                       </h3>
 
-                      <p className="text-xs text-[#605850] leading-relaxed line-clamp-2">
+                      <p className="text-xs text-[#7A7269] leading-relaxed line-clamp-2 font-light">
                         {product.description}
                       </p>
 
@@ -268,10 +269,10 @@ export default function MenuPage() {
                               key={opt}
                               type="button"
                               onClick={() => handleOptionSelect(product.id, opt)}
-                              className={`px-2.5 py-1 rounded-md text-[11px] font-medium transition-all ${
+                              className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
                                 currentOption === opt
-                                  ? 'bg-[#3A302A] text-white shadow-xs'
-                                  : 'bg-[#F6F0E8] text-[#605850] hover:text-[#3A302A]'
+                                  ? 'bg-[#010101] text-white shadow-2xs font-semibold'
+                                  : 'bg-[#F3EFEA] text-[#7A7269] hover:text-[#010101] border border-[#D8D0C8]'
                               }`}
                             >
                               {opt}
@@ -282,10 +283,12 @@ export default function MenuPage() {
                     </div>
 
                     {/* Price & Add to Cart button */}
-                    <div className="pt-3 border-t border-[#F6F0E8] flex items-center justify-between">
+                    <div className="pt-3 border-t border-[#EAE4DA] flex items-center justify-between">
                       <div>
-                        <span className="text-[10px] text-[#9A9088] uppercase block">Harga</span>
-                        <span className="font-bold text-base text-[#3A302A]">
+                        <span className="text-[10px] text-[#7A7269] uppercase font-medium block">
+                          Harga
+                        </span>
+                        <span className="font-display font-bold text-xl text-[#010101]">
                           {formatRupiah(product.price)}
                         </span>
                       </div>
@@ -297,7 +300,7 @@ export default function MenuPage() {
                             setEditingProduct(product);
                             setIsEditModalOpen(true);
                           }}
-                          className="py-2 px-3.5 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all bg-[#FAF5EE] hover:bg-[#C2652A] text-[#3A302A] hover:text-white border border-[#D8D0C8] hover:border-[#C2652A] active:scale-95"
+                          className="py-2 px-3.5 rounded-full text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-2xs transition-all bg-[#F3EFEA] hover:bg-[#010101] text-[#010101] hover:text-white border border-[#D8D0C8] active:scale-95"
                           aria-label={`Edit ${product.name}`}
                         >
                           <Edit2 size={13} />
@@ -311,10 +314,10 @@ export default function MenuPage() {
                             addItem(product, currentOption);
                             setIsDrawerOpen(true);
                           }}
-                          className={`py-2 px-3.5 rounded-xl text-xs font-semibold tracking-wide flex items-center gap-1.5 shadow-sm transition-all ${
+                          className={`py-2 px-4 rounded-full text-[11px] font-bold uppercase tracking-wider flex items-center gap-1.5 shadow-sm transition-all active:scale-95 ${
                             available
-                              ? 'bg-[#C2652A] hover:bg-[#A95420] text-white active:scale-95'
-                              : 'bg-[#D8D0C8] text-[#9A9088] cursor-not-allowed'
+                              ? 'bg-[#010101] hover:bg-[#7E4124] text-white'
+                              : 'bg-[#D8D0C8] text-[#7A7269] cursor-not-allowed'
                           }`}
                           aria-label={`Pesan ${product.name}`}
                         >
@@ -344,4 +347,3 @@ export default function MenuPage() {
     </div>
   );
 }
-
