@@ -124,7 +124,7 @@ export const Navbar: React.FC = () => {
         </div>
       </header>
 
-    {/* Customer / Member Floating Liquid Glass Navigation Dock (Tampil di Mobile & Browser Desktop) */}
+    {/* Customer / Member Floating Liquid Glass Navigation Dock (Khusus Tampilan Mobile) */}
     {!pathname.startsWith('/admin') && (
       <nav
         aria-label="Liquid Glass Navigation Dock"
@@ -135,7 +135,7 @@ export const Navbar: React.FC = () => {
           backdrop-blur-2xl backdrop-saturate-200 
           border border-white/80 
           shadow-[0_16px_40px_-8px_rgba(58,48,42,0.18),0_0_0_1px_rgba(255,255,255,0.7)_inset] 
-          p-1.5 sm:p-2 flex items-center justify-center gap-1 sm:gap-2 
+          p-1.5 sm:p-2 flex md:hidden items-center justify-center gap-1 sm:gap-2 
           transition-all duration-300"
       >
         <Link

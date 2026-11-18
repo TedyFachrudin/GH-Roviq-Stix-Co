@@ -240,7 +240,7 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
         </div>
       </aside>
 
-      {/* Floating Liquid Glass Navigation Dock: Menu Utama Admin (Tampil di Mobile & Desktop Browser) */}
+      {/* Floating Liquid Glass Navigation Dock: Menu Utama Admin (Khusus Mobile) */}
       <nav
         aria-label="Liquid Glass Admin Navigation"
         className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 
@@ -250,7 +250,7 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
           backdrop-blur-2xl backdrop-saturate-200 
           border border-white/80 
           shadow-[0_16px_40px_-8px_rgba(58,48,42,0.18),0_0_0_1px_rgba(255,255,255,0.7)_inset] 
-          p-1.5 sm:p-2 flex items-center justify-center gap-1 sm:gap-2 
+          p-1.5 sm:p-2 flex lg:hidden items-center justify-center gap-1 sm:gap-2 
           transition-all duration-300"
       >
         {navItems.map((item) => {
