@@ -112,170 +112,152 @@ export default function HomePage() {
   return (
     <div className="space-y-20 sm:space-y-28 md:space-y-36 pb-20">
       
-      {/* 1. HERO SECTION (Ferea Signature Bold Typographic Hero) */}
-      <section className="relative pt-8 sm:pt-14 md:pt-20 overflow-hidden">
+      {/* 1. HERO SECTION (Ferea Signature Integrated Side-by-Side 3D Hero) */}
+      <section
+        className="relative pt-6 sm:pt-10 md:pt-14 pb-12 sm:pb-20 overflow-visible"
+        onMouseMove={handleMouseMove}
+        onMouseLeave={handleMouseLeave}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Top Tag & Pill */}
-          <div className="flex items-center gap-2 mb-4 sm:mb-6">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAE4DA] text-[#010101] text-[11px] font-bold uppercase tracking-wider font-sans">
-              <Sparkles size={12} className="text-[#7E4124]" />
-              <span>Artisan Coffee & Kitchen</span>
-            </span>
-            <span className="text-xs text-[#7A7269] font-medium hidden sm:inline">
-              • Est. 2026 Bandung
-            </span>
-          </div>
-
-          {/* Giant Display Headlines (Ferea Style) */}
-          <div className="space-y-1 sm:space-y-0">
-            <h1 className="font-display font-bold uppercase tracking-tighter text-[#010101] leading-[0.88] text-[64px] sm:text-[100px] md:text-[132px] lg:text-[168px] xl:text-[192px] select-none">
-              FRESHLY
-            </h1>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2 className="font-display font-bold uppercase tracking-tighter text-[#7E4124] leading-[0.88] text-[64px] sm:text-[100px] md:text-[132px] lg:text-[168px] xl:text-[192px] select-none">
-                BREWED
-              </h2>
-              <div className="max-w-sm sm:text-right pt-2 sm:pt-0">
-                <p className="text-xs sm:text-sm text-[#7A7269] leading-relaxed font-sans font-light">
-                  Specialty coffee, and artisan kitchen made to brighten every day. Enjoy curated single origin, seasonal drinks & warm hospitality.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Row & Subtitle */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-8 sm:pt-10 border-t border-[#EAE4DA] mt-8">
-            <div className="flex flex-wrap items-center gap-3">
-              <Link
-                href="/menu"
-                className="px-7 py-3.5 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-95 group"
-              >
-                <span>Order Now</span>
-                <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
-              </Link>
-              <Link
-                href="/profil"
-                className="px-7 py-3.5 rounded-full bg-white/70 hover:bg-white border border-[#D8D0C8] text-[#010101] text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-2xs"
-              >
-                <Award size={15} className="text-[#7E4124]" />
-                <span>Member & Loyalty Stamp</span>
-              </Link>
-            </div>
-
-            {/* Quick Metrics */}
-            <div className="flex items-center gap-6 sm:gap-8 pt-3 sm:pt-0 text-[#010101]">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
+            
+            {/* Left Column: Typography, Narrative & Actions */}
+            <div className="lg:col-span-7 xl:col-span-7 z-20 space-y-6 sm:space-y-8">
+              
+              {/* Top Tag & Pill */}
               <div className="flex items-center gap-2">
-                <span className="font-display font-bold text-2xl sm:text-3xl">10</span>
-                <span className="text-[11px] text-[#7A7269] uppercase font-sans tracking-wide leading-tight">
-                  Stamps<br />Free Coffee
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAE4DA] text-[#010101] text-[11px] font-bold uppercase tracking-wider font-sans">
+                  <Sparkles size={12} className="text-[#7E4124]" />
+                  <span>Artisan Coffee & Kitchen</span>
+                </span>
+                <span className="text-xs text-[#7A7269] font-medium">
+                  • Est. 2026 Bandung
                 </span>
               </div>
-              <div className="w-px h-8 bg-[#D8D0C8]" />
-              <div className="flex items-center gap-2">
-                <span className="font-display font-bold text-2xl sm:text-3xl text-[#7E4124]">4.9★</span>
-                <span className="text-[11px] text-[#7A7269] uppercase font-sans tracking-wide leading-tight">
-                  Customer<br />Rating
-                </span>
+
+              {/* Giant Display Headlines (Ferea Style) */}
+              <div className="space-y-0 select-none">
+                <h1 className="font-display font-bold uppercase tracking-tighter text-[#010101] leading-[0.85] text-[64px] sm:text-[96px] md:text-[116px] lg:text-[110px] xl:text-[132px]">
+                  FRESHLY
+                </h1>
+                <h2 className="font-display font-bold uppercase tracking-tighter text-[#7E4124] leading-[0.85] text-[64px] sm:text-[96px] md:text-[116px] lg:text-[110px] xl:text-[132px]">
+                  BREWED
+                </h2>
               </div>
-            </div>
-          </div>
 
-          {/* Hero Visual 3D Composition with Interactive Parallax */}
-          <div
-            className="relative mt-8 sm:mt-12 w-full rounded-[32px] sm:rounded-[48px] overflow-hidden border border-[#D8D0C8] shadow-2xl bg-gradient-to-b from-[#EAE4DA] via-[#F3EFEA] to-[#E2D8CA] min-h-[440px] sm:min-h-[540px] md:min-h-[600px] flex items-center justify-center p-6 sm:p-12 select-none group cursor-pointer"
-            onMouseMove={handleMouseMove}
-            onMouseLeave={handleMouseLeave}
-          >
-            {/* Subtle radial ambient warmth */}
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(221,159,87,0.18)_0%,transparent_70%)] pointer-events-none" />
-
-            {/* Background Graphic Watermark */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.04] select-none">
-              <span className="font-display font-bold text-[180px] sm:text-[320px] tracking-tighter uppercase text-[#010101]">
-                ROVIQ
-              </span>
-            </div>
-
-            {/* 3D Coffee Splash Layer (Behind Cup) */}
-            <div
-              className="absolute z-10 w-[340px] sm:w-[520px] md:w-[640px] aspect-square pointer-events-none select-none"
-              style={{
-                transform: `translate(${mousePos.x * -18}px, ${mousePos.y * -18}px) rotate(-6deg)`,
-                transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
-              }}
-            >
-              <Image
-                src="/images/hero-splash-ghroviq.png"
-                alt="3D Coffee Splash and Beans"
-                fill
-                priority
-                className="object-contain filter drop-shadow-[0_20px_35px_rgba(126,65,36,0.22)]"
-                sizes="(max-width: 768px) 340px, (max-width: 1200px) 520px, 640px"
-              />
-            </div>
-
-            {/* 3D GH ROVIQ Paper Cup Layer (Front & Center) */}
-            <div
-              className="relative z-20 w-[170px] sm:w-[230px] md:w-[270px] aspect-[441/712] pointer-events-none select-none"
-              style={{
-                transform: `perspective(1000px) rotateX(${mousePos.y * -14}deg) rotateY(${mousePos.x * 14}deg) rotateZ(-12deg) scale(${1 + Math.abs(mousePos.x) * 0.03})`,
-                filter: 'drop-shadow(-28px 40px 32px rgba(58, 32, 16, 0.4)) drop-shadow(0 10px 16px rgba(0,0,0,0.15))',
-                transition: 'transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)',
-              }}
-            >
-              <Image
-                src="/images/hero-cup-ghroviq-cropped.png"
-                alt="GH ROVIQ STIX & CO 3D Artisan Coffee Cup"
-                fill
-                priority
-                className="object-contain"
-                sizes="(max-width: 768px) 170px, (max-width: 1200px) 230px, 270px"
-              />
-            </div>
-
-            {/* Floating Top Left Pill Badge */}
-            <div className="absolute top-4 sm:top-8 left-4 sm:left-8 z-30 flex items-center gap-2 p-2 sm:p-2.5 px-3.5 sm:px-4 rounded-full bg-[#F3EFEA]/85 backdrop-blur-md border border-white/80 shadow-card">
-              <span className="w-2 h-2 rounded-full bg-[#7E4124] animate-ping" />
-              <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-[#010101]">
-                100% Arabica Beans
-              </span>
-            </div>
-
-            {/* Rotating Circular Sticker Badge (Top Right) */}
-            <div className="hidden sm:flex absolute top-6 right-6 z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#010101]/90 backdrop-blur-md border border-white/20 text-[#F3EFEA] items-center justify-center shadow-2xl select-none">
-              <svg
-                className="w-full h-full animate-spin-slow p-1.5"
-                viewBox="0 0 100 100"
-                overflow="visible"
-              >
-                <path
-                  id="badgeCircle"
-                  d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
-                  fill="none"
-                />
-                <text className="text-[9.5px] font-bold uppercase tracking-[2.6px] fill-[#F3EFEA]">
-                  <textPath href="#badgeCircle">
-                    • GH ROVIQ • 100% ARABICA • EST. 2026
-                  </textPath>
-                </text>
-              </svg>
-              <Coffee size={20} className="absolute text-[#DD9F57]" />
-            </div>
-
-            {/* Floating Bottom Left Caption on Hero */}
-            <div className="absolute bottom-4 sm:bottom-8 left-4 sm:left-8 right-4 sm:right-auto z-30 max-w-sm sm:max-w-md p-4 sm:p-5 rounded-[22px] bg-[#F3EFEA]/90 backdrop-blur-xl border border-white/80 shadow-card">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-[#7E4124]">
-                Daily Specialty Coffee
-              </span>
-              <h3 className="font-display font-bold text-lg sm:text-xl text-[#010101] uppercase tracking-tight mt-0.5">
-                Single Origin Arabica & Artisan Kitchen
-              </h3>
-              <p className="text-xs text-[#7A7269] line-clamp-1 mt-1 font-light">
-                Diseduh segar dengan ketelitian gramatur & suhu terkalibrasi.
+              {/* Subtitle Narrative */}
+              <p className="text-sm sm:text-base text-[#7A7269] leading-relaxed font-sans font-light max-w-lg">
+                Specialty coffee, and artisan kitchen made to brighten every day. Enjoy curated single origin, seasonal drinks & warm hospitality.
               </p>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
+                <Link
+                  href="/menu"
+                  className="px-8 py-3.5 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-95 group"
+                >
+                  <span>Order Now</span>
+                  <ArrowRight size={15} className="group-hover:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="/profil"
+                  className="px-7 py-3.5 rounded-full bg-white/70 hover:bg-white border border-[#D8D0C8] text-[#010101] text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 transition-all duration-200 active:scale-95 shadow-2xs"
+                >
+                  <Award size={15} className="text-[#7E4124]" />
+                  <span>Member & Loyalty Stamp</span>
+                </Link>
+              </div>
+
+              {/* Quick Metrics */}
+              <div className="flex items-center gap-6 sm:gap-8 pt-4 border-t border-[#EAE4DA] max-w-md text-[#010101]">
+                <div className="flex items-center gap-2.5">
+                  <span className="font-display font-bold text-3xl sm:text-4xl">10</span>
+                  <span className="text-[11px] text-[#7A7269] uppercase font-sans tracking-wide leading-tight">
+                    Stamps<br />Free Coffee
+                  </span>
+                </div>
+                <div className="w-px h-8 bg-[#D8D0C8]" />
+                <div className="flex items-center gap-2.5">
+                  <span className="font-display font-bold text-3xl sm:text-4xl text-[#7E4124]">4.9★</span>
+                  <span className="text-[11px] text-[#7A7269] uppercase font-sans tracking-wide leading-tight">
+                    Customer<br />Rating
+                  </span>
+                </div>
+              </div>
+
             </div>
+
+            {/* Right Column: Seamless 3D Cup + Splash Parallax (No Card, Large & Tilted) */}
+            <div className="lg:col-span-5 xl:col-span-5 relative z-10 flex items-center justify-center min-h-[400px] sm:min-h-[520px] lg:min-h-[580px] xl:min-h-[640px] select-none py-6 lg:py-0">
+              
+              {/* Subtle Warm Ambient Glow */}
+              <div className="absolute w-[360px] sm:w-[480px] h-[360px] sm:h-[480px] rounded-full bg-[#DD9F57]/15 blur-3xl pointer-events-none" />
+
+              {/* Rotating Circular Sticker Badge (Floating Top Right) */}
+              <div className="hidden sm:flex absolute -top-4 right-2 lg:-top-6 lg:-right-4 z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#010101]/90 backdrop-blur-md border border-white/20 text-[#F3EFEA] items-center justify-center shadow-2xl select-none">
+                <svg
+                  className="w-full h-full animate-spin-slow p-1.5"
+                  viewBox="0 0 100 100"
+                  overflow="visible"
+                >
+                  <path
+                    id="badgeCircle"
+                    d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
+                    fill="none"
+                  />
+                  <text className="text-[9.5px] font-bold uppercase tracking-[2.6px] fill-[#F3EFEA]">
+                    <textPath href="#badgeCircle">
+                      • GH ROVIQ • 100% ARABICA • EST. 2026
+                    </textPath>
+                  </text>
+                </svg>
+                <Coffee size={20} className="absolute text-[#DD9F57]" />
+              </div>
+
+              {/* 3D Coffee Splash Layer (Behind Cup, Large & Flowing) */}
+              <div
+                className="absolute z-10 w-[380px] sm:w-[500px] md:w-[560px] lg:w-[580px] xl:w-[650px] aspect-square pointer-events-none select-none"
+                style={{
+                  transform: `translate(${mousePos.x * -20}px, ${mousePos.y * -20}px) rotate(-8deg) scale(1.05)`,
+                  transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                }}
+              >
+                <Image
+                  src="/images/hero-splash-ghroviq.png"
+                  alt="3D Coffee Splash and Beans"
+                  fill
+                  priority
+                  className="object-contain filter drop-shadow-[0_24px_45px_rgba(126,65,36,0.3)]"
+                  sizes="(max-width: 768px) 380px, (max-width: 1200px) 560px, 650px"
+                />
+              </div>
+
+              {/* 3D GH ROVIQ Paper Cup Layer (Front & Center, Tilted slightly & Large) */}
+              <div
+                className="relative z-20 w-[210px] sm:w-[270px] md:w-[300px] lg:w-[310px] xl:w-[340px] aspect-[441/712] pointer-events-none select-none"
+                style={{
+                  transform: `perspective(1000px) rotateX(${mousePos.y * -16}deg) rotateY(${mousePos.x * 16}deg) rotateZ(-16deg) scale(${1 + Math.abs(mousePos.x) * 0.03})`,
+                  filter: 'drop-shadow(-32px 48px 36px rgba(58, 32, 16, 0.44)) drop-shadow(0 14px 22px rgba(0,0,0,0.18))',
+                  transition: 'transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)',
+                }}
+              >
+                <Image
+                  src="/images/hero-cup-ghroviq-cropped.png"
+                  alt="GH ROVIQ STIX & CO 3D Artisan Coffee Cup"
+                  fill
+                  priority
+                  className="object-contain"
+                  sizes="(max-width: 768px) 210px, (max-width: 1200px) 300px, 340px"
+                />
+              </div>
+
+            </div>
+
           </div>
+
+        </div>
+      </section>
 
         </div>
       </section>
