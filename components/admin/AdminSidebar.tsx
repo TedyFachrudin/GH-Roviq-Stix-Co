@@ -77,12 +77,42 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
     },
   ];
 
+  const adminActiveIndex = React.useMemo(() => {
+    const idx = navItems.findIndex((it) => it.active);
+    return idx !== -1 ? idx : 0;
+  }, [navItems]);
+
+  const [activeTab, setActiveTab] = React.useState<number>(adminActiveIndex);
+  const [isDragging, setIsDragging] = React.useState(false);
+  const adminNavRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    setActiveTab(adminActiveIndex);
+  }, [adminActiveIndex]);
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (!adminNavRef.current) return;
+    const rect = adminNavRef.current.getBoundingClientRect();
+    const touchX = e.touches[0].clientX - rect.left;
+    const tabWidth = rect.width / navItems.length;
+    const nextIdx = Math.max(0, Math.min(navItems.length - 1, Math.floor(touchX / tabWidth)));
+    setActiveTab(nextIdx);
+    setIsDragging(true);
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    if (navItems[activeTab] && pathname !== navItems[activeTab].href) {
+      router.push(navItems[activeTab].href);
+    }
+  };
+
   return (
     <>
-      {/* Mobile Top Header (< lg): Compact, no huge gap */}
-      <header className="w-full lg:hidden bg-[#F6F0E8] border-b border-[#E8E2D9] px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-2xs">
+      {/* Mobile Top Header (< lg): Compact, Bening Crystal Glass */}
+      <header className="w-full lg:hidden bg-white/20 backdrop-blur-2xl border-b border-white/40 px-4 py-3 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-[#FAF5EE] border border-[#D8D0C8] p-1 flex items-center justify-center shadow-xs">
+          <div className="w-8 h-8 rounded-full bg-white/40 border border-white/50 p-1 flex items-center justify-center shadow-xs">
             <Image
               src="/logo-gh-roviq.svg"
               alt="GH ROVIQ Logo"
@@ -107,7 +137,7 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
           <Link
             href="/"
             target="_blank"
-            className="px-2.5 py-1.5 rounded-lg bg-[#FAF5EE] text-[#605850] hover:text-[#3A302A] border border-[#E8E2D9] text-[11px] font-semibold flex items-center gap-1.5"
+            className="px-2.5 py-1.5 rounded-lg bg-white/30 text-[#605850] hover:text-[#3A302A] border border-white/40 text-[11px] font-semibold flex items-center gap-1.5 transition-all"
             title="Lihat Tampilan Toko"
           >
             <ExternalLink size={12} className="text-[#9A9088]" />
@@ -117,7 +147,7 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
           <button
             onClick={handleLogout}
             title="Keluar dari akun Admin"
-            className="p-1.5 rounded-lg text-[#9A9088] hover:text-red-600 hover:bg-white border border-transparent hover:border-red-200 transition-all"
+            className="p-1.5 rounded-lg text-[#9A9088] hover:text-red-600 hover:bg-white/40 border border-transparent hover:border-red-200 transition-all"
             aria-label="Logout"
           >
             <LogOut size={16} />
@@ -240,28 +270,45 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation Bar (< lg): Floating Glassmorphism Dock */}
-      <nav className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto lg:hidden">
-        {/* Soft glowing ambient light */}
-        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-pink-500/35 via-fuchsia-500/35 to-purple-600/35 blur-xl opacity-90 pointer-events-none -z-10" />
+      {/* Mobile Bottom Navigation Bar (< lg): Bening Floating Liquid Dock */}
+      <nav className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto lg:hidden select-none" aria-label="Navigasi Admin Bawah">
+        <div
+          ref={adminNavRef}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          className="relative rounded-3xl bg-white/20 backdrop-blur-2xl border border-white/40 shadow-[0_12px_40px_0_rgba(0,0,0,0.08),inset_0_1px_1px_rgba(255,255,255,0.6)] px-2 py-2 flex items-center justify-around overflow-hidden"
+        >
+          {/* Animasi Liquid Pill Perpindahan / Drag Indicator */}
+          <div
+            className={`absolute top-1.5 bottom-1.5 rounded-2xl bg-white/50 backdrop-blur-md border border-white/70 shadow-[0_4px_16px_rgba(0,0,0,0.08),inset_0_1px_2px_rgba(255,255,255,0.95)] pointer-events-none transition-all duration-500 ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+              isDragging ? 'scale-x-105 scale-y-95 opacity-90' : 'scale-100 opacity-100'
+            }`}
+            style={{
+              left: `calc(${activeTab * 25}% + 4px)`,
+              width: 'calc(25% - 8px)',
+            }}
+          >
+            <div className="absolute top-1 left-2 right-2 h-1 rounded-full bg-gradient-to-r from-transparent via-white/80 to-transparent pointer-events-none" />
+          </div>
 
-        <div className="relative rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/70 shadow-[0_12px_40px_0_rgba(168,85,247,0.35),0_2px_10px_0_rgba(236,72,153,0.25)] px-2.5 py-2 flex items-center justify-around ring-1 ring-white/60">
-          {navItems.map((item) => {
+          {navItems.map((item, idx) => {
             const Icon = item.icon;
+            const isTabActive = activeTab === idx;
             return (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-200 relative ${
-                  item.active
-                    ? 'bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-purple-600 text-white shadow-[0_4px_16px_rgba(219,39,119,0.45)]'
-                    : 'text-neutral-600 hover:text-purple-600 hover:bg-white/30'
+                onClick={() => setActiveTab(idx)}
+                className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-200 relative z-10 ${
+                  isTabActive
+                    ? 'text-[#3A302A] font-bold'
+                    : 'text-[#605850] hover:text-[#3A302A]'
                 }`}
               >
                 <div className="relative">
-                  <Icon size={19} className={item.active ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
+                  <Icon size={19} className={isTabActive ? 'stroke-[2.4]' : 'stroke-[1.8]'} />
                   {item.badge && (
-                    <span className="absolute -top-1.5 -right-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(236,72,153,0.8)] animate-pulse">
+                    <span className="absolute -top-1.5 -right-2.5 bg-[#C2652A] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
                       {item.badge}
                     </span>
                   )}

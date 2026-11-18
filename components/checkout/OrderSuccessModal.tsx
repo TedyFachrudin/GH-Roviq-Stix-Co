@@ -128,7 +128,7 @@ export const OrderSuccessModal: React.FC<OrderSuccessModalProps> = ({ order, onC
           .join(', ')
       : 'Sajian Menu';
 
-  // Nomor resmi WhatsApp Barista GH ROVIQ (08989884001 -> 628989884001)
+  // Nomor resmi WhatsApp GH ROVIQ (08989884001 -> 628989884001)
   const waNumber = '628989884001';
   const waMessage = encodeURIComponent(
     `Halo GH ROVIQ! 👋\n` +
