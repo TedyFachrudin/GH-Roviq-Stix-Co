@@ -27,25 +27,24 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-[#FAF5EE]/95 backdrop-blur-md border-b border-[#E8E2D9] transition-all">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20">
+      <header className="sticky top-2 sm:top-4 z-40 max-w-7xl mx-auto px-3 sm:px-6 transition-all">
+        <div className="rounded-2xl sm:rounded-full bg-[#FAF5EE]/85 backdrop-blur-xl backdrop-saturate-180 border border-white/70 shadow-[0_10px_35px_-5px_rgba(58,48,42,0.10),0_0_0_1px_rgba(255,255,255,0.6)_inset] px-4 sm:px-8 py-3 flex items-center justify-between">
           
           {/* Logo brand matching SVGs */}
           <Link href="/" className="flex items-center gap-3 group">
-            <BrandLogo size={42} className="w-[42px] h-[42px]" priority />
+            <BrandLogo size={38} className="w-[38px] h-[38px]" priority />
             <div className="flex flex-col">
-              <span className="font-serif text-xl sm:text-2xl font-bold tracking-tight text-[#3A302A]">
+              <span className="font-serif text-lg sm:text-2xl font-bold tracking-tight text-[#3A302A]">
                 GH ROVIQ
               </span>
-              <span className="text-[10px] tracking-widest text-[#9A9088] uppercase font-sans">
+              <span className="text-[9px] sm:text-[10px] tracking-widest text-[#9A9088] uppercase font-sans">
                 Coffee & Kitchen
               </span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center gap-1.5 p-1 rounded-full bg-white/40 border border-white/50 backdrop-blur-md shadow-2xs">
             {navLinks.map((link) => {
               const isActive =
                 pathname === link.href ||
@@ -54,10 +53,10 @@ export const Navbar: React.FC = () => {
                 <Link
                   key={link.name}
                   href={link.href}
-                  className={`text-sm tracking-wide transition-colors ${
+                  className={`text-xs tracking-wide transition-all px-4 py-1.5 rounded-full ${
                     isActive
-                      ? 'text-[#C2652A] font-medium border-b-2 border-[#C2652A] pb-1'
-                      : 'text-[#605850] hover:text-[#3A302A]'
+                      ? 'bg-[#C2652A] text-white font-semibold shadow-xs'
+                      : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/60 font-medium'
                   }`}
                 >
                   {link.name}
@@ -67,13 +66,13 @@ export const Navbar: React.FC = () => {
           </nav>
 
           {/* Action Tools: Auth & Cart */}
-          <div className="flex items-center space-x-3 sm:space-x-5">
+          <div className="flex items-center space-x-3 sm:space-x-4">
             {/* User Button / Sign In */}
             <div className="hidden sm:flex items-center">
               <AppSignedOut>
                 <Link
                   href="/sign-in"
-                  className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider font-medium text-[#3A302A] hover:text-[#C2652A] px-3 py-1.5 rounded-full border border-[#D8D0C8] hover:border-[#C2652A] transition-all"
+                  className="inline-flex items-center gap-1.5 text-xs uppercase tracking-wider font-medium text-[#3A302A] hover:text-[#C2652A] px-3.5 py-1.5 rounded-full bg-white/50 hover:bg-white border border-white/70 shadow-2xs transition-all"
                 >
                   <User size={14} />
                   <span>Masuk</span>
@@ -93,10 +92,10 @@ export const Navbar: React.FC = () => {
                 <AppSignedIn>
                   <button
                     onClick={() => setIsDrawerOpen(true)}
-                    className="relative p-2.5 rounded-full bg-[#F6F0E8] text-[#3A302A] hover:bg-[#F2ECE4] hover:text-[#C2652A] border border-[#E8E2D9] transition-all"
+                    className="relative p-2.5 rounded-full bg-white/50 hover:bg-white text-[#3A302A] hover:text-[#C2652A] border border-white/70 shadow-2xs transition-all"
                     aria-label="Buka Keranjang"
                   >
-                    <ShoppingBag size={20} />
+                    <ShoppingBag size={18} />
                     {totalItems > 0 && (
                       <span className="absolute -top-1 -right-1 bg-[#C2652A] text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm animate-in fade-in zoom-in duration-150">
                         {totalItems}
@@ -105,15 +104,15 @@ export const Navbar: React.FC = () => {
                   </button>
                 </AppSignedIn>
 
-                {/* When User is NOT Logged In: Only show button if user actively added items (never show dummy/starter data) */}
+                {/* When User is NOT Logged In: Only show button if user actively added items */}
                 <AppSignedOut>
                   {totalItems > 0 && (
                     <button
                       onClick={() => setIsDrawerOpen(true)}
-                      className="relative p-2.5 rounded-full bg-[#F6F0E8] text-[#3A302A] hover:bg-[#F2ECE4] hover:text-[#C2652A] border border-[#E8E2D9] transition-all"
+                      className="relative p-2.5 rounded-full bg-white/50 hover:bg-white text-[#3A302A] hover:text-[#C2652A] border border-white/70 shadow-2xs transition-all"
                       aria-label="Buka Keranjang"
                     >
-                      <ShoppingBag size={20} />
+                      <ShoppingBag size={18} />
                       <span className="absolute -top-1 -right-1 bg-[#C2652A] text-white text-[11px] font-bold w-5 h-5 rounded-full flex items-center justify-center shadow-sm animate-in fade-in zoom-in duration-150">
                         {totalItems}
                       </span>
@@ -126,14 +125,13 @@ export const Navbar: React.FC = () => {
             {/* Mobile Hamburger Button */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden p-2.5 rounded-md text-[#3A302A] hover:bg-[#F6F0E8] transition-colors"
+              className="md:hidden p-2 rounded-xl text-[#3A302A] hover:bg-white/50 transition-colors"
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <X size={22} /> : <MenuIcon size={22} />}
+              {mobileMenuOpen ? <X size={20} /> : <MenuIcon size={20} />}
             </button>
           </div>
         </div>
-      </div>
 
       {/* Mobile Drawer Menu */}
       {mobileMenuOpen && (
@@ -179,47 +177,48 @@ export const Navbar: React.FC = () => {
       )}
     </header>
 
-    {/* Customer / Member Mobile Floating Liquid Glass Navigation Bar (Non-Admin only) */}
+    {/* Customer / Member Floating Liquid Glass Navigation Dock (Tampil di Mobile & Browser Desktop) */}
     {!pathname.startsWith('/admin') && (
       <nav
-        aria-label="Liquid Glass Mobile Navigation"
-        className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 max-w-sm sm:max-w-md mx-auto z-50 
+        aria-label="Liquid Glass Navigation Dock"
+        className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 
+          w-[calc(100%-1.5rem)] max-w-sm sm:max-w-md md:max-w-fit
           rounded-full 
-          bg-[#FAF5EE]/80 
-          backdrop-blur-xl backdrop-saturate-180 
-          border border-white/70 
-          shadow-[0_12px_36px_-6px_rgba(58,48,42,0.16),0_0_0_1px_rgba(255,255,255,0.6)_inset] 
-          p-1.5 flex items-center justify-around 
-          transition-all duration-300 md:hidden"
+          bg-[#FAF5EE]/85 
+          backdrop-blur-2xl backdrop-saturate-200 
+          border border-white/80 
+          shadow-[0_16px_40px_-8px_rgba(58,48,42,0.18),0_0_0_1px_rgba(255,255,255,0.7)_inset] 
+          p-1.5 sm:p-2 flex items-center justify-around md:justify-center md:gap-2 
+          transition-all duration-300"
       >
         <Link
           href="/"
-          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 ${
             pathname === '/'
               ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
-              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/40'
+              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
           }`}
         >
           <Home size={18} className={pathname === '/' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
-          {pathname === '/' && <span className="animate-in fade-in duration-200">Beranda</span>}
+          <span className={pathname === '/' ? 'inline' : 'hidden sm:inline'}>Beranda</span>
         </Link>
 
         <Link
           href="/menu"
-          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 ${
             pathname === '/menu'
               ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
-              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/40'
+              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
           }`}
         >
           <Coffee size={18} className={pathname === '/menu' ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
-          {pathname === '/menu' && <span className="animate-in fade-in duration-200">Menu</span>}
+          <span className={pathname === '/menu' ? 'inline' : 'hidden sm:inline'}>Menu</span>
         </Link>
 
         <button
           type="button"
           onClick={() => setIsDrawerOpen(true)}
-          className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-semibold tracking-wide text-[#605850] hover:text-[#3A302A] hover:bg-white/40 transition-all duration-200 active:scale-95 relative"
+          className="flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide text-[#605850] hover:text-[#3A302A] hover:bg-white/50 transition-all duration-200 active:scale-95 relative"
           aria-label="Keranjang Belanja"
         >
           <div className="relative">
@@ -230,17 +229,18 @@ export const Navbar: React.FC = () => {
               </span>
             )}
           </div>
+          <span className="hidden sm:inline">Pesanan</span>
           {totalItems > 0 && (
-            <span className="text-[11px] font-bold text-[#C2652A]">{totalItems}</span>
+            <span className="text-[11px] font-bold text-[#C2652A] sm:hidden">({totalItems})</span>
           )}
         </button>
 
         <Link
           href={isAdmin ? '/admin' : '/profil'}
-          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 ${
+          className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 ${
             pathname === '/profil' || pathname.startsWith('/sign-in')
               ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
-              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/40'
+              : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
           }`}
         >
           <User
@@ -251,9 +251,15 @@ export const Navbar: React.FC = () => {
                 : 'stroke-[1.8]'
             }
           />
-          {(pathname === '/profil' || pathname.startsWith('/sign-in')) && (
-            <span className="animate-in fade-in duration-200">{isAdmin ? 'Admin' : 'Member'}</span>
-          )}
+          <span
+            className={
+              pathname === '/profil' || pathname.startsWith('/sign-in')
+                ? 'inline'
+                : 'hidden sm:inline'
+            }
+          >
+            {isAdmin ? 'Admin' : 'Member'}
+          </span>
         </Link>
       </nav>
     )}

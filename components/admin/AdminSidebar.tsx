@@ -240,17 +240,18 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
         </div>
       </aside>
 
-      {/* Mobile Floating Liquid Glass Navigation Bar (< lg): Menu Utama Admin */}
+      {/* Floating Liquid Glass Navigation Dock: Menu Utama Admin (Tampil di Mobile & Desktop Browser) */}
       <nav
         aria-label="Liquid Glass Admin Navigation"
-        className="fixed bottom-3 sm:bottom-4 inset-x-3 sm:inset-x-4 max-w-sm sm:max-w-md mx-auto z-50 
+        className="fixed bottom-4 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 
+          w-[calc(100%-1.5rem)] max-w-sm sm:max-w-md md:max-w-fit
           rounded-full 
-          bg-[#FAF5EE]/80 
-          backdrop-blur-xl backdrop-saturate-180 
-          border border-white/70 
-          shadow-[0_12px_36px_-6px_rgba(58,48,42,0.16),0_0_0_1px_rgba(255,255,255,0.6)_inset] 
-          p-1.5 flex items-center justify-around 
-          transition-all duration-300 lg:hidden"
+          bg-[#FAF5EE]/85 
+          backdrop-blur-2xl backdrop-saturate-200 
+          border border-white/80 
+          shadow-[0_16px_40px_-8px_rgba(58,48,42,0.18),0_0_0_1px_rgba(255,255,255,0.7)_inset] 
+          p-1.5 sm:p-2 flex items-center justify-around md:justify-center md:gap-2.5 
+          transition-all duration-300"
       >
         {navItems.map((item) => {
           const Icon = item.icon;
@@ -258,10 +259,10 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
             <Link
               key={item.label}
               href={item.href}
-              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs font-semibold tracking-wide transition-all duration-200 active:scale-95 ${
                 item.active
                   ? 'bg-[#C2652A] text-white shadow-md shadow-[#C2652A]/25'
-                  : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/40'
+                  : 'text-[#605850] hover:text-[#3A302A] hover:bg-white/50'
               }`}
             >
               <div className="relative">
@@ -272,11 +273,9 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
                   </span>
                 )}
               </div>
-              {item.active && (
-                <span className="animate-in fade-in duration-200 text-xs font-semibold truncate max-w-[85px]">
-                  {item.label}
-                </span>
-              )}
+              <span className={item.active ? 'inline font-semibold' : 'hidden sm:inline font-medium'}>
+                {item.label}
+              </span>
             </Link>
           );
         })}
