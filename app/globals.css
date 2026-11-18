@@ -65,6 +65,20 @@
   animation: spin-slow 22s linear infinite;
 }
 
+@keyframes sticker-swing {
+  0%, 100% {
+    transform: rotate(-10deg);
+  }
+  50% {
+    transform: rotate(4deg);
+  }
+}
+
+.animate-sticker-swing {
+  animation: sticker-swing 3.2s ease-in-out infinite;
+  transform-origin: 35% 65%;
+}
+
 /* Subtle texture & transitions */
 .bg-warm-canvas {
   background-color: #F3EFEA;

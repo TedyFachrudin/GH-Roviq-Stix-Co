@@ -125,15 +125,20 @@ export default function HomePage() {
             {/* Left Column: Typography, Narrative & Actions */}
             <div className="lg:col-span-7 xl:col-span-7 z-20 space-y-6 sm:space-y-8">
               
-              {/* Top Tag & Pill */}
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#EAE4DA] text-[#010101] text-[11px] font-bold uppercase tracking-wider font-sans">
-                  <Sparkles size={12} className="text-[#7E4124]" />
-                  <span>Artisan Coffee & Kitchen</span>
-                </span>
-                <span className="text-xs text-[#7A7269] font-medium">
-                  • Est. 2026 Bandung
-                </span>
+              {/* Animated Floating Vinyl Sticker (Overlapping FRESHLY) */}
+              <div className="relative z-30 mb-[-22px] sm:mb-[-34px] md:mb-[-42px] w-fit">
+                <div className="animate-sticker-swing select-none cursor-pointer">
+                  <div className="relative w-[130px] sm:w-[165px] md:w-[195px] aspect-[862/693] filter drop-shadow-[0_10px_20px_rgba(58,32,16,0.25)] hover:scale-105 transition-transform duration-300">
+                    <Image
+                      src="/images/hero-sticker-stayawake.png"
+                      alt="Stay Awake - GH ROVIQ CO. Sticker"
+                      fill
+                      priority
+                      className="object-contain"
+                      sizes="(max-width: 640px) 130px, (max-width: 768px) 165px, 195px"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Giant Display Headlines (Ferea Style) */}
