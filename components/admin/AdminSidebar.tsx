@@ -240,34 +240,39 @@ export function AdminSidebar({ onOpenRevenueModal }: AdminSidebarProps = {}) {
         </div>
       </aside>
 
-      {/* Mobile Bottom Navigation Bar (< lg): Menu Utama di Bawah */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#FAF5EE]/95 backdrop-blur-md border-t border-[#E8E2D9] px-2 py-1.5 flex items-center justify-around lg:hidden shadow-lg">
-        {navItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.label}
-              href={item.href}
-              className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-xl transition-all relative ${
-                item.active
-                  ? 'text-[#C2652A] font-bold'
-                  : 'text-[#9A9088] hover:text-[#3A302A]'
-              }`}
-            >
-              <div className="relative">
-                <Icon size={19} className={item.active ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
-                {item.badge && (
-                  <span className="absolute -top-1.5 -right-2.5 bg-[#C2652A] text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center animate-pulse">
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-              <span className="text-[10px] mt-1 tracking-tight text-center leading-tight">
-                {item.label}
-              </span>
-            </Link>
-          );
-        })}
+      {/* Mobile Bottom Navigation Bar (< lg): Floating Glassmorphism Dock */}
+      <nav className="fixed bottom-4 left-4 right-4 z-50 max-w-md mx-auto lg:hidden">
+        {/* Soft glowing ambient light */}
+        <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-pink-500/35 via-fuchsia-500/35 to-purple-600/35 blur-xl opacity-90 pointer-events-none -z-10" />
+
+        <div className="relative rounded-3xl bg-white/80 backdrop-blur-2xl border border-white/70 shadow-[0_12px_40px_0_rgba(168,85,247,0.35),0_2px_10px_0_rgba(236,72,153,0.25)] px-2.5 py-2 flex items-center justify-around ring-1 ring-white/60">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-200 relative ${
+                  item.active
+                    ? 'bg-gradient-to-tr from-pink-500 via-fuchsia-500 to-purple-600 text-white shadow-[0_4px_16px_rgba(219,39,119,0.45)]'
+                    : 'text-neutral-600 hover:text-purple-600 hover:bg-white/30'
+                }`}
+              >
+                <div className="relative">
+                  <Icon size={19} className={item.active ? 'stroke-[2.5]' : 'stroke-[1.8]'} />
+                  {item.badge && (
+                    <span className="absolute -top-1.5 -right-2.5 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-[0_0_8px_rgba(236,72,153,0.8)] animate-pulse">
+                      {item.badge}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[10px] mt-1 tracking-tight text-center leading-tight font-medium">
+                  {item.label}
+                </span>
+              </Link>
+            );
+          })}
+        </div>
       </nav>
     </>
   );
