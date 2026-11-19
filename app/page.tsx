@@ -119,12 +119,13 @@ export default function HomePage() {
     };
   }, []);
 
-  const featuredProducts =
-    products.length === 0
-      ? []
-      : products.filter((p) => p.badge === 'Terlaris' || p.badge).length > 0
-      ? products.filter((p) => p.badge === 'Terlaris' || p.badge).slice(0, 8)
-      : products.slice(0, 8);
+  // Tampilkan seluruh produk katalog di carousel beranda (prioritaskan produk berbadge seperti Terlaris/Baru di awal)
+  const featuredProducts = React.useMemo(() => {
+    if (products.length === 0) return [];
+    const withBadge = products.filter((p) => Boolean(p.badge));
+    const withoutBadge = products.filter((p) => !p.badge);
+    return [...withBadge, ...withoutBadge].slice(0, 12);
+  }, [products]);
 
   const formatRupiah = (val: number) => {
     return new Intl.NumberFormat('id-ID', {
@@ -458,13 +459,10 @@ export default function HomePage() {
           <div className="relative w-full">
             <Carousel
               opts={{
-                loop: true,
-                align: 'center',
-                containScroll: false,
-                scale: 0.9,
-                visible: 3,
+                loop: featuredProducts.length > 2,
+                align: 'start',
               }}
-              plugins={[autoplayPlugin.current]}
+              plugins={featuredProducts.length > 2 ? [autoplayPlugin.current] : []}
               className="w-full"
             >
               <CarouselContent className="-ml-4 sm:-ml-5">
@@ -477,7 +475,7 @@ export default function HomePage() {
                   return (
                     <CarouselItem
                       key={product.id}
-                      className="pl-4 sm:pl-5 basis-full sm:basis-[60%] md:basis-[48%] lg:basis-[33.333%]"
+                      className="pl-4 sm:pl-5 basis-full sm:basis-[50%] lg:basis-[33.333%]"
                     >
                       <div
                         className={`group bg-white rounded-[26px] border border-[#E7DFD3] p-4 sm:p-5 flex flex-col justify-between hover:border-[#7E4124] transition-all duration-300 hover:shadow-card h-full select-none ${
@@ -601,8 +599,8 @@ export default function HomePage() {
                   );
                 })}
               </CarouselContent>
-              <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6" />
-              <CarouselNext className="hidden md:flex -right-4 lg:-right-6" />
+              <CarouselPrevious className="flex -left-3 sm:-left-5" />
+              <CarouselNext className="flex -right-3 sm:-right-5" />
               <div className="mt-8 flex flex-col items-center gap-2">
                 <CarouselDots />
                 <CarouselCounter className="text-xs text-[#7A7269] font-medium" />
