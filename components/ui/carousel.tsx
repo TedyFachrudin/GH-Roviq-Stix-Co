@@ -181,17 +181,29 @@ export function CarouselContent({ className, ...props }: React.ComponentProps<'d
   );
 }
 
-export function CarouselItem({ className, ...props }: React.ComponentProps<'div'>) {
-  const { orientation } = useCarousel();
+export function CarouselItem({
+  className,
+  index,
+  ...props
+}: React.ComponentProps<'div'> & { index?: number }) {
+  const { orientation, selectedIndex, opts } = useCarousel();
+  const isScaleEnabled = opts?.scale !== undefined;
+  const isSelected = index !== undefined ? index === selectedIndex : false;
 
   return (
     <div
       role="group"
       aria-roledescription="slide"
       data-slot="carousel-item"
+      data-active={isSelected}
       className={cn(
-        'min-w-0 shrink-0 grow-0 basis-full transition-transform duration-300',
+        'min-w-0 shrink-0 grow-0 basis-full transition-all duration-500 ease-out',
         orientation === 'horizontal' ? 'pl-4' : 'pt-4',
+        isScaleEnabled && (
+          isSelected
+            ? 'scale-100 opacity-100 z-10'
+            : 'scale-[0.88] opacity-75'
+        ),
         className
       )}
       {...props}

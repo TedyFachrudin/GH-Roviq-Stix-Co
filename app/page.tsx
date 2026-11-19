@@ -18,6 +18,7 @@ import {
   Star,
 } from 'lucide-react';
 import { Product } from '@/types';
+import { PRODUCTS } from '@/lib/products-data';
 import {
   getStoredProducts,
   syncCatalogWithCloud,
@@ -119,12 +120,12 @@ export default function HomePage() {
     };
   }, []);
 
-  // Tampilkan seluruh produk katalog di carousel beranda (prioritaskan produk berbadge seperti Terlaris/Baru di awal)
-  const featuredProducts = React.useMemo(() => {
-    if (products.length === 0) return [];
-    const withBadge = products.filter((p) => Boolean(p.badge));
-    const withoutBadge = products.filter((p) => !p.badge);
-    return [...withBadge, ...withoutBadge].slice(0, 12);
+  // Tampilkan seluruh produk katalog di carousel beranda (fallback ke katalog signature produk jika belum ada item)
+  const displayProducts = React.useMemo(() => {
+    const list = products.length > 0 ? products : PRODUCTS;
+    const withBadge = list.filter((p) => Boolean(p.badge));
+    const withoutBadge = list.filter((p) => !p.badge);
+    return [...withBadge, ...withoutBadge];
   }, [products]);
 
   const formatRupiah = (val: number) => {
@@ -427,56 +428,31 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* Product Cards Carousel (Ferea Style Animated Carousel with Auto-Loop) */}
-        {featuredProducts.length === 0 ? (
-          <div className="bg-white rounded-[32px] border border-[#E7DFD3] p-10 sm:p-16 text-center max-w-xl mx-auto space-y-5 shadow-xs">
-            <div className="w-16 h-16 rounded-full bg-[#F3EFEA] border border-[#E7DFD3] flex items-center justify-center text-[#7E4124] mx-auto shadow-inner">
-              <Coffee size={28} className="stroke-[1.75]" />
-            </div>
-            <div className="space-y-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#F3EFEA] border border-[#E7DFD3] text-[#7E4124] text-[10px] font-bold uppercase tracking-widest">
-                <Sparkles size={11} />
-                <span>Katalog Kosong</span>
-              </span>
-              <h3 className="font-display font-bold text-2xl text-[#010101] uppercase tracking-tight">
-                Menu Terlaris Sedang Dipersiapkan
-              </h3>
-              <p className="text-xs sm:text-sm text-[#7A7269] max-w-md mx-auto leading-relaxed font-light font-sans">
-                Saat ini belum ada produk dalam katalog. Anda dapat menambahkan menu melalui Portal Admin.
-              </p>
-            </div>
-            <div className="pt-2">
-              <Link
-                href="/menu"
-                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-full bg-[#010101] text-white text-xs font-semibold uppercase tracking-wider transition-all hover:bg-[#7E4124]"
-              >
-                <span>Lihat Katalog Lengkap</span>
-                <ArrowRight size={14} />
-              </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="relative w-full">
-            <Carousel
-              opts={{
-                loop: featuredProducts.length > 2,
-                align: 'start',
-              }}
-              plugins={featuredProducts.length > 2 ? [autoplayPlugin.current] : []}
-              className="w-full"
-            >
-              <CarouselContent className="-ml-4 sm:-ml-5">
-                {featuredProducts.map((product) => {
-                  const currentOption =
-                    selectedOptions[product.id] ||
-                    (product.temperatureOptions ? product.temperatureOptions[0] : undefined);
-                  const available = isProductAvailable(product.id, product);
+        {/* Product Cards Carousel (Animate UI Scale Style Animated Carousel) */}
+        <div className="relative w-full">
+          <Carousel
+            opts={{
+              loop: true,
+              align: 'center',
+              scale: 0.8,
+              visible: 3,
+            }}
+            plugins={[autoplayPlugin.current]}
+            className="w-full"
+          >
+            <CarouselContent className="-ml-3 sm:-ml-4">
+              {displayProducts.map((product, index) => {
+                const currentOption =
+                  selectedOptions[product.id] ||
+                  (product.temperatureOptions ? product.temperatureOptions[0] : undefined);
+                const available = isProductAvailable(product.id, product);
 
-                  return (
-                    <CarouselItem
-                      key={product.id}
-                      className="pl-4 sm:pl-5 basis-full sm:basis-[50%] lg:basis-[33.333%]"
-                    >
+                return (
+                  <CarouselItem
+                    key={product.id}
+                    index={index}
+                    className="pl-3 sm:pl-4 basis-[82%] sm:basis-[52%] lg:basis-[33.333%]"
+                  >
                       <div
                         className={`group bg-white rounded-[26px] border border-[#E7DFD3] p-4 sm:p-5 flex flex-col justify-between hover:border-[#7E4124] transition-all duration-300 hover:shadow-card h-full select-none ${
                           available ? '' : 'opacity-75 grayscale-[20%]'
@@ -607,7 +583,6 @@ export default function HomePage() {
               </div>
             </Carousel>
           </div>
-        )}
       </section>
 
       {/* 5. WHY CHOOSE US (3 Bento Feature Cards from Ferea) */}
