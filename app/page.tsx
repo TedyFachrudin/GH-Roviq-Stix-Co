@@ -23,6 +23,18 @@ import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { EditProductModal } from '@/components/admin/EditProductModal';
 import { useCart } from '@/context/CartContext';
+import Autoplay from 'embla-carousel-autoplay';
+import { Tilt, TiltContent } from '@/components/ui/tilt';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselPrevious,
+  CarouselNext,
+  CarouselDots,
+  CarouselCounter,
+} from '@/components/ui/carousel';
+import { Effect } from '@/components/ui/effect';
 
 export default function HomePage() {
   const { addItem, setIsDrawerOpen } = useCart();
@@ -31,6 +43,9 @@ export default function HomePage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const autoplayPlugin = React.useRef(
+    Autoplay({ delay: 3500, stopOnInteraction: false, stopOnMouseEnter: true })
+  );
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -201,67 +216,60 @@ export default function HomePage() {
 
             </div>
 
-            {/* Right Column: Seamless 3D Cup + Splash Parallax (No Card, Large & Tilted) */}
+            {/* Right Column: Seamless 3D Cup + Splash Parallax with 3D Tilt */}
             <div className="lg:col-span-5 xl:col-span-5 relative z-10 flex items-center justify-center min-h-[400px] sm:min-h-[520px] lg:min-h-[580px] xl:min-h-[640px] select-none py-6 lg:py-0">
-
-              {/* Rotating Circular Sticker Badge (Floating Top Right) */}
-              <div className="hidden sm:flex absolute -top-4 right-2 lg:-top-6 lg:-right-4 z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#010101]/90 backdrop-blur-md border border-white/20 text-[#F3EFEA] items-center justify-center shadow-2xl select-none">
-                <svg
-                  className="w-full h-full animate-spin-slow p-1.5"
-                  viewBox="0 0 100 100"
-                  overflow="visible"
-                >
-                  <path
-                    id="badgeCircle"
-                    d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
-                    fill="none"
-                  />
-                  <text className="text-[9.5px] font-bold uppercase tracking-[2.6px] fill-[#F3EFEA]">
-                    <textPath href="#badgeCircle">
-                      • GH ROVIQ • 100% ARABICA • EST. 2026
-                    </textPath>
-                  </text>
-                </svg>
-                <Coffee size={20} className="absolute text-[#DD9F57]" />
-              </div>
-
-              {/* 3D Coffee Splash Layer (Behind Cup, Large & Flowing) */}
-              <div
-                className="absolute z-10 w-[380px] sm:w-[500px] md:w-[560px] lg:w-[580px] xl:w-[650px] aspect-square pointer-events-none select-none"
-                style={{
-                  transform: `translate(${mousePos.x * -20}px, ${mousePos.y * -20}px) rotate(-8deg) scale(1.05)`,
-                  transition: 'transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                }}
+              <Tilt
+                maxTilt={14}
+                perspective={850}
+                className="w-full flex items-center justify-center"
               >
-                <Image
-                  src="/images/hero-splash-ghroviq.png"
-                  alt="3D Coffee Splash and Beans"
-                  fill
-                  priority
-                  className="object-contain filter drop-shadow-[0_24px_45px_rgba(126,65,36,0.3)]"
-                  sizes="(max-width: 768px) 380px, (max-width: 1200px) 560px, 650px"
-                />
-              </div>
+                <TiltContent className="relative flex items-center justify-center w-full">
+                  {/* Rotating Circular Sticker Badge (Floating Top Right) */}
+                  <div className="hidden sm:flex absolute -top-4 right-2 lg:-top-6 lg:-right-4 z-30 w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#010101]/90 backdrop-blur-md border border-white/20 text-[#F3EFEA] items-center justify-center shadow-2xl select-none">
+                    <svg
+                      className="w-full h-full animate-spin-slow p-1.5"
+                      viewBox="0 0 100 100"
+                      overflow="visible"
+                    >
+                      <path
+                        id="badgeCircle"
+                        d="M 50, 50 m -37, 0 a 37,37 0 1,1 74,0 a 37,37 0 1,1 -74,0"
+                        fill="none"
+                      />
+                      <text className="text-[9.5px] font-bold uppercase tracking-[2.6px] fill-[#F3EFEA]">
+                        <textPath href="#badgeCircle">
+                          • GH ROVIQ • 100% ARABICA • EST. 2026
+                        </textPath>
+                      </text>
+                    </svg>
+                    <Coffee size={20} className="absolute text-[#DD9F57]" />
+                  </div>
 
-              {/* 3D GH ROVIQ Paper Cup Layer (Front & Center, Tilted slightly & Large) */}
-              <div
-                className="relative z-20 w-[210px] sm:w-[270px] md:w-[300px] lg:w-[310px] xl:w-[340px] aspect-[441/712] pointer-events-none select-none"
-                style={{
-                  transform: `perspective(1000px) rotateX(${mousePos.y * -16}deg) rotateY(${mousePos.x * 16}deg) rotateZ(-16deg) scale(${1 + Math.abs(mousePos.x) * 0.03})`,
-                  filter: 'drop-shadow(-32px 48px 36px rgba(58, 32, 16, 0.44)) drop-shadow(0 14px 22px rgba(0,0,0,0.18))',
-                  transition: 'transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1)',
-                }}
-              >
-                <Image
-                  src="/images/hero-cup-ghroviq-cropped.png"
-                  alt="GH ROVIQ STIX & CO 3D Artisan Coffee Cup"
-                  fill
-                  priority
-                  className="object-contain"
-                  sizes="(max-width: 768px) 210px, (max-width: 1200px) 300px, 340px"
-                />
-              </div>
+                  {/* 3D Coffee Splash Layer (Behind Cup, Large & Flowing) */}
+                  <div className="absolute z-10 w-[380px] sm:w-[500px] md:w-[560px] lg:w-[580px] xl:w-[650px] aspect-square pointer-events-none select-none -rotate-6 scale-105">
+                    <Image
+                      src="/images/hero-splash-ghroviq.png"
+                      alt="3D Coffee Splash and Beans"
+                      fill
+                      priority
+                      className="object-contain filter drop-shadow-[0_24px_45px_rgba(126,65,36,0.3)]"
+                      sizes="(max-width: 768px) 380px, (max-width: 1200px) 560px, 650px"
+                    />
+                  </div>
 
+                  {/* 3D GH ROVIQ Paper Cup Layer (Front & Center, Tilted slightly & Large) */}
+                  <div className="relative z-20 w-[210px] sm:w-[270px] md:w-[300px] lg:w-[310px] xl:w-[340px] aspect-[441/712] pointer-events-none select-none -rotate-12 transform-gpu filter drop-shadow-[-32px_48px_36px_rgba(58,32,16,0.44)] drop-shadow-[0_14px_22px_rgba(0,0,0,0.18)]">
+                    <Image
+                      src="/images/hero-cup-ghroviq-cropped.png"
+                      alt="GH ROVIQ STIX & CO 3D Artisan Coffee Cup"
+                      fill
+                      priority
+                      className="object-contain"
+                      sizes="(max-width: 768px) 210px, (max-width: 1200px) 300px, 340px"
+                    />
+                  </div>
+                </TiltContent>
+              </Tilt>
             </div>
 
           </div>
@@ -408,7 +416,7 @@ export default function HomePage() {
           </Link>
         </div>
 
-        {/* Product Cards Grid (Ferea Style) */}
+        {/* Product Cards Carousel (Ferea Style Animated Carousel with Auto-Loop) */}
         {featuredProducts.length === 0 ? (
           <div className="bg-white rounded-[32px] border border-[#E7DFD3] p-10 sm:p-16 text-center max-w-xl mx-auto space-y-5 shadow-xs">
             <div className="w-16 h-16 rounded-full bg-[#F3EFEA] border border-[#E7DFD3] flex items-center justify-center text-[#7E4124] mx-auto shadow-inner">
@@ -437,83 +445,105 @@ export default function HomePage() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {featuredProducts.map((product) => (
-              <div
-                key={product.id}
-                className="group bg-white rounded-[26px] border border-[#E7DFD3] p-4 flex flex-col justify-between hover:border-[#7E4124] transition-all duration-300 hover:shadow-card hover:-translate-y-1"
-              >
-                {/* Product Image Box */}
-                <div className="relative aspect-square w-full rounded-[20px] overflow-hidden bg-[#F3EFEA] mb-4">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    unoptimized={Boolean(product.image?.startsWith('data:'))}
-                    className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                  />
-                  {product.badge && (
-                    <span className="absolute top-3 left-3 bg-[#010101]/85 backdrop-blur-sm text-white text-[9.5px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-white/20">
-                      {product.badge}
-                    </span>
-                  )}
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-0.5 rounded-full text-[10px] font-bold text-[#010101] shadow-xs">
-                    ★ {product.rating || 4.9}
-                  </div>
-                </div>
+          <div className="relative w-full">
+            <Carousel
+              opts={{
+                loop: true,
+                align: 'center',
+                containScroll: false,
+                scale: 0.9,
+                visible: 3,
+              }}
+              plugins={[autoplayPlugin.current]}
+              className="w-full"
+            >
+              <CarouselContent className="-ml-4 sm:-ml-5">
+                {featuredProducts.map((product) => (
+                  <CarouselItem
+                    key={product.id}
+                    className="pl-4 sm:pl-5 basis-full sm:basis-[60%] md:basis-[48%] lg:basis-[33.333%]"
+                  >
+                    <div className="group bg-white rounded-[26px] border border-[#E7DFD3] p-4 sm:p-5 flex flex-col justify-between hover:border-[#7E4124] transition-all duration-300 hover:shadow-card h-full select-none">
+                      {/* Product Image Box */}
+                      <div className="relative aspect-square w-full rounded-[20px] overflow-hidden bg-[#F3EFEA] mb-4">
+                        <Image
+                          src={product.image}
+                          alt={product.name}
+                          fill
+                          unoptimized={Boolean(product.image?.startsWith('data:'))}
+                          className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                        />
+                        {product.badge && (
+                          <span className="absolute top-3 left-3 bg-[#010101]/85 backdrop-blur-sm text-white text-[9.5px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-white/20">
+                            {product.badge}
+                          </span>
+                        )}
+                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-bold text-[#010101] shadow-xs">
+                          ★ {product.rating || 4.9}
+                        </div>
+                      </div>
 
-                {/* Info & Add Action */}
-                <div className="flex-1 flex flex-col justify-between space-y-3">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E4124]">
-                      {product.category}
-                    </span>
-                    <h3 className="font-display font-bold text-lg text-[#010101] uppercase tracking-tight line-clamp-1 group-hover:text-[#7E4124] transition-colors mt-0.5">
-                      {product.name}
-                    </h3>
-                    <p className="text-xs text-[#7A7269] line-clamp-2 leading-relaxed font-light mt-1 font-sans">
-                      {product.description}
-                    </p>
-                  </div>
+                      {/* Info & Add Action */}
+                      <div className="flex-1 flex flex-col justify-between space-y-3">
+                        <div>
+                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E4124]">
+                            {product.category}
+                          </span>
+                          <h3 className="font-display font-bold text-lg text-[#010101] uppercase tracking-tight line-clamp-1 group-hover:text-[#7E4124] transition-colors mt-0.5">
+                            {product.name}
+                          </h3>
+                          <p className="text-xs text-[#7A7269] line-clamp-2 leading-relaxed font-light mt-1 font-sans">
+                            {product.description}
+                          </p>
+                        </div>
 
-                  <div className="pt-3 border-t border-[#F3EFEA] flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] text-[#7A7269] block font-sans">Harga</span>
-                      <span className="font-display font-bold text-base text-[#010101]">
-                        {formatRupiah(product.price)}
-                      </span>
+                        <div className="pt-3 border-t border-[#F3EFEA] flex items-center justify-between">
+                          <div>
+                            <span className="text-[10px] text-[#7A7269] block font-sans">Harga</span>
+                            <span className="font-display font-bold text-base text-[#010101]">
+                              {formatRupiah(product.price)}
+                            </span>
+                          </div>
+
+                          {isAdmin ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setEditingProduct(product);
+                                setIsEditModalOpen(true);
+                              }}
+                              className="px-3.5 py-2 rounded-full bg-[#EAE4DA] hover:bg-[#7E4124] text-[#010101] hover:text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1 active:scale-95"
+                            >
+                              <Edit2 size={12} />
+                              <span>Edit</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                addItem(product);
+                                setIsDrawerOpen(true);
+                              }}
+                              className="px-4 py-2 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-2xs group-hover:bg-[#7E4124]"
+                            >
+                              <Plus size={13} className="stroke-[3]" />
+                              <span>Order</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
                     </div>
-
-                    {isAdmin ? (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingProduct(product);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="px-3.5 py-2 rounded-full bg-[#EAE4DA] hover:bg-[#7E4124] text-[#010101] hover:text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1 active:scale-95"
-                      >
-                        <Edit2 size={12} />
-                        <span>Edit</span>
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          addItem(product);
-                          setIsDrawerOpen(true);
-                        }}
-                        className="px-4 py-2 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-2xs group-hover:bg-[#7E4124]"
-                      >
-                        <Plus size={13} className="stroke-[3]" />
-                        <span>Order</span>
-                      </button>
-                    )}
-                  </div>
-                </div>
+                  </CarouselItem>
+                ))}
+              </CarouselContent>
+              <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6" />
+              <CarouselNext className="hidden md:flex -right-4 lg:-right-6" />
+              <div className="mt-8 flex flex-col items-center gap-2">
+                <CarouselDots />
+                <CarouselCounter className="text-xs text-[#7A7269] font-medium" />
               </div>
-            ))}
+            </Carousel>
           </div>
         )}
       </section>

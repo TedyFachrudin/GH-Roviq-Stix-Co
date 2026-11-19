@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { CartItem, Product } from '@/types';
 import { PRODUCTS } from '@/lib/products-data';
+import { toast } from '@/components/ui/toast';
 
 // Default starter cart matching mockups (Keranjang Belanja.svg & Checkout.svg)
 export const DEFAULT_INITIAL_CART: CartItem[] = [];
@@ -93,6 +94,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       return [...prev, { product, quantity: 1, selectedOption: defaultOption }];
     });
+
+    try {
+      toast.add({
+        type: 'success',
+        title: 'Ditambahkan ke Keranjang',
+        description: `${product.name} ${defaultOption ? `(${defaultOption})` : ''} siap dipesan.`,
+      });
+    } catch (err) {
+      console.error('Toast notification error:', err);
+    }
   };
 
   const requestDeleteItem = (item: CartItem) => {

@@ -5,6 +5,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { Footer } from '@/components/layout/Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
 import { DeleteConfirmModal } from '@/components/cart/DeleteConfirmModal';
+import { Toaster } from '@/components/ui/toast';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -33,6 +34,7 @@ export default function RootLayout({
             <Footer />
             <CartDrawer />
             <DeleteConfirmModal />
+            <Toaster />
           </CartProvider>
         </AppAuthProvider>
       </body>
