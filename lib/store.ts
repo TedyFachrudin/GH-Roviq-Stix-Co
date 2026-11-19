@@ -899,7 +899,6 @@ export async function syncOrdersFromCloud(): Promise<OrderDetails[]> {
 export function clearStoredOrders(): void {
   if (typeof window === 'undefined') return;
   try {
-    localStorage.removeItem(ORDERS_KEY);
     localStorage.setItem(ORDERS_KEY, JSON.stringify([]));
     window.dispatchEvent(new Event('gh_orders_updated'));
   } catch (e) {

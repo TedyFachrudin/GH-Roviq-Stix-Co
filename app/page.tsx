@@ -145,7 +145,7 @@ export default function HomePage() {
         onMouseMove={handleMouseMove}
         onMouseLeave={handleMouseLeave}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
           
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-6 items-center">
             
@@ -153,7 +153,7 @@ export default function HomePage() {
             <div className="lg:col-span-7 xl:col-span-7 z-20 space-y-6 sm:space-y-8">
               
               {/* Animated Floating Vinyl Sticker (Overlapping FRESHLY - Scaled Down) */}
-              <div className="relative z-30 mb-[-14px] sm:mb-[-20px] md:mb-[-24px] w-fit">
+              <div className="hero-entrance relative z-30 mb-[-14px] sm:mb-[-20px] md:mb-[-24px] w-fit">
                 <div className="animate-sticker-swing select-none cursor-pointer">
                   <div className="relative w-[85px] sm:w-[105px] md:w-[125px] aspect-[862/693] filter drop-shadow-[0_8px_16px_rgba(58,32,16,0.22)] hover:scale-105 transition-transform duration-300">
                     <Image
@@ -169,7 +169,7 @@ export default function HomePage() {
               </div>
 
               {/* Giant Display Headlines (Ferea Style with Paper Textured FRESHLY & Tilted Boxed BREWED) */}
-              <div className="space-y-1 select-none">
+              <div className="hero-entrance hero-delay-1 space-y-1 select-none">
                 <h1 className="font-display font-bold uppercase tracking-tighter leading-[0.85] text-[64px] sm:text-[96px] md:text-[116px] lg:text-[110px] xl:text-[132px] select-none block">
                   <span className="paper-textured-text">
                     FRESHLY
@@ -187,12 +187,12 @@ export default function HomePage() {
               </div>
 
               {/* Subtitle Narrative */}
-              <p className="text-sm sm:text-base text-[#7A7269] leading-relaxed font-sans font-light max-w-lg">
+              <p className="hero-entrance hero-delay-2 text-sm sm:text-base text-[#7A7269] leading-relaxed font-sans font-light max-w-lg">
                 Specialty coffee, and artisan kitchen made to brighten every day. Enjoy curated single origin, seasonal drinks & warm hospitality.
               </p>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
+              <div className="hero-entrance hero-delay-3 flex flex-wrap items-center gap-3 pt-2">
                 <Link
                   href="/menu"
                   className="px-8 py-3.5 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white text-xs uppercase tracking-wider font-semibold flex items-center justify-center gap-2 shadow-sm transition-all duration-200 active:scale-95 group"
@@ -210,7 +210,7 @@ export default function HomePage() {
               </div>
 
               {/* Quick Metrics */}
-              <div className="flex items-center gap-6 sm:gap-8 pt-4 border-t border-[#EAE4DA] max-w-md text-[#010101]">
+              <div className="hero-entrance hero-delay-4 flex items-center gap-6 sm:gap-8 pt-4 border-t border-[#EAE4DA] max-w-md text-[#010101]">
                 <div className="flex items-center gap-2.5">
                   <span className="font-display font-bold text-3xl sm:text-4xl">10</span>
                   <span className="text-[11px] text-[#7A7269] uppercase font-sans tracking-wide leading-tight">
@@ -229,7 +229,7 @@ export default function HomePage() {
             </div>
 
             {/* Right Column: Seamless 3D Cup + Splash Parallax with 3D Tilt */}
-            <div className="lg:col-span-5 xl:col-span-5 relative z-10 flex items-center justify-center min-h-[400px] sm:min-h-[520px] lg:min-h-[580px] xl:min-h-[640px] select-none py-6 lg:py-0">
+            <div className="hero-entrance-scale hero-delay-2 lg:col-span-5 xl:col-span-5 relative z-10 flex items-center justify-center min-h-[400px] sm:min-h-[520px] lg:min-h-[580px] xl:min-h-[640px] select-none py-6 lg:py-0">
               <Tilt
                 maxTilt={14}
                 perspective={850}

@@ -215,7 +215,3 @@ export function Toaster({ className }: { className?: string }) {
     </div>
   );
 }
-
-export function createToastManager() {
-  return toast;
-}

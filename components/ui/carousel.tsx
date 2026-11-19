@@ -324,5 +324,3 @@ export function CarouselCounter({ className }: { className?: string }) {
     </div>
   );
 }
-
-export default useEmblaCarousel;
