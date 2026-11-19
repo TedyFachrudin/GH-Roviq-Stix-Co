@@ -79,6 +79,20 @@
   transform-origin: 35% 65%;
 }
 
+/* Tactile Paper Texture for Editorial Headline */
+.paper-textured-text {
+  color: #7E4124;
+  background-image: url('/images/ferea-grain-texture.png'), linear-gradient(135deg, #7E4124 0%, #683216 50%, #854323 100%);
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: multiply;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+  filter: contrast(1.15) brightness(0.96);
+}
+
 /* Subtle texture & transitions */
 .bg-warm-canvas {
   background-color: #F3EFEA;

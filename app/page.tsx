@@ -125,30 +125,38 @@ export default function HomePage() {
             {/* Left Column: Typography, Narrative & Actions */}
             <div className="lg:col-span-7 xl:col-span-7 z-20 space-y-6 sm:space-y-8">
               
-              {/* Animated Floating Vinyl Sticker (Overlapping FRESHLY) */}
-              <div className="relative z-30 mb-[-22px] sm:mb-[-34px] md:mb-[-42px] w-fit">
+              {/* Animated Floating Vinyl Sticker (Overlapping FRESHLY - Scaled Down) */}
+              <div className="relative z-30 mb-[-14px] sm:mb-[-20px] md:mb-[-24px] w-fit">
                 <div className="animate-sticker-swing select-none cursor-pointer">
-                  <div className="relative w-[130px] sm:w-[165px] md:w-[195px] aspect-[862/693] filter drop-shadow-[0_10px_20px_rgba(58,32,16,0.25)] hover:scale-105 transition-transform duration-300">
+                  <div className="relative w-[85px] sm:w-[105px] md:w-[125px] aspect-[862/693] filter drop-shadow-[0_8px_16px_rgba(58,32,16,0.22)] hover:scale-105 transition-transform duration-300">
                     <Image
                       src="/images/hero-sticker-stayawake.png"
                       alt="Stay Awake - GH ROVIQ CO. Sticker"
                       fill
                       priority
                       className="object-contain"
-                      sizes="(max-width: 640px) 130px, (max-width: 768px) 165px, 195px"
+                      sizes="(max-width: 640px) 85px, (max-width: 768px) 105px, 125px"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Giant Display Headlines (Ferea Style) */}
-              <div className="space-y-0 select-none">
-                <h1 className="font-display font-bold uppercase tracking-tighter text-[#010101] leading-[0.85] text-[64px] sm:text-[96px] md:text-[116px] lg:text-[110px] xl:text-[132px]">
-                  FRESHLY
+              {/* Giant Display Headlines (Ferea Style with Paper Textured FRESHLY & Tilted Boxed BREWED) */}
+              <div className="space-y-1 select-none">
+                <h1 className="font-display font-bold uppercase tracking-tighter leading-[0.85] text-[64px] sm:text-[96px] md:text-[116px] lg:text-[110px] xl:text-[132px] select-none block">
+                  <span className="paper-textured-text">
+                    FRESHLY
+                  </span>
                 </h1>
-                <h2 className="font-display font-bold uppercase tracking-tighter text-[#7E4124] leading-[0.85] text-[64px] sm:text-[96px] md:text-[116px] lg:text-[110px] xl:text-[132px]">
-                  BREWED
-                </h2>
+                
+                {/* BREWED in a Tilted Outlined Box */}
+                <div className="inline-block transform -rotate-3 sm:-rotate-6 origin-left mt-1.5 sm:mt-2">
+                  <div className="border-2 sm:border-[3px] border-[#7E4124] bg-[#7E4124] text-[#F3EFEA] px-4 sm:px-6 py-1 sm:py-1.5 rounded-xl shadow-md shadow-[#7E4124]/20 select-none">
+                    <h2 className="font-display font-bold uppercase tracking-tighter text-[#F3EFEA] leading-none text-[48px] sm:text-[76px] md:text-[92px] lg:text-[88px] xl:text-[108px]">
+                      BREWED
+                    </h2>
+                  </div>
+                </div>
               </div>
 
               {/* Subtitle Narrative */}
