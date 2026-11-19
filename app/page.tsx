@@ -12,6 +12,7 @@ import {
   Clock,
   Heart,
   Plus,
+  Minus,
   Edit2,
   CheckCircle2,
   Flame,
@@ -51,6 +52,7 @@ export default function HomePage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, 'Panas' | 'Dingin'>>({});
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 3500, stopOnInteraction: false, stopOnMouseEnter: true })
   );
@@ -329,7 +331,7 @@ export default function HomePage() {
       </section>
 
       {/* 3. ABOUT US SECTION ("MORE THAN COFFEE, IT'S DAILY MOMENT") */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
           
           {/* Left: Editorial Copy */}
@@ -407,7 +409,7 @@ export default function HomePage() {
       </section>
 
       {/* 4. FEATURED MENU SHOWCASE ("MADE WITH CARE, SERVED WITH HEART") */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
         
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-8 sm:mb-12 gap-4 border-b border-[#EAE4DA] pb-6">
@@ -586,7 +588,7 @@ export default function HomePage() {
       </section>
 
       {/* 5. WHY CHOOSE US (3 Bento Feature Cards from Ferea) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
         <div className="text-center max-w-2xl mx-auto space-y-3 mb-12 sm:mb-16">
           <span className="text-[11px] font-bold tracking-widest text-[#7E4124] uppercase font-sans">
             [ WHY CHOOSE US ]
@@ -660,7 +662,7 @@ export default function HomePage() {
       </section>
 
       {/* 6. AMBIENCE & SPACE ("OUR PLACE") */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
         <div className="rounded-[32px] sm:rounded-[44px] bg-[#EAE4DA] border border-[#D8D0C8] p-6 sm:p-12 overflow-hidden">
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div>
@@ -705,8 +707,157 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* 7. DIGITAL LOYALTY CARD BANNER (Ferea Dark Statement Card) */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      {/* 7. SPECIAL OFFER ("SETIAP CANGKIR PUNYA CERITA") */}
+      <section className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
+        <div className="rounded-[32px] sm:rounded-[44px] overflow-hidden border border-[#D8D0C8]">
+          <div className="grid grid-cols-1 lg:grid-cols-2">
+            {/* Photo side */}
+            <div className="relative min-h-[280px] sm:min-h-[360px]">
+              <Image
+                src="https://images.unsplash.com/photo-1461023058943-07fcbe16d735?q=80&w=800&auto=format&fit=crop"
+                alt="Paket Santai Sore GH ROVIQ"
+                fill
+                className="object-cover"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent lg:bg-gradient-to-r" />
+              <div className="absolute bottom-6 left-6 sm:bottom-8 sm:left-8 z-10">
+                <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tighter text-white leading-[0.92] select-none">
+                  SETIAP CANGKIR<br />
+                  <span className="text-[#DD9F57]">PUNYA CERITA.</span>
+                </h2>
+              </div>
+            </div>
+            {/* Promo details */}
+            <div className="bg-[#F3EFEA] p-7 sm:p-10 lg:p-12 flex flex-col justify-center space-y-5">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#7E4124] text-white text-[10px] font-bold uppercase tracking-wider w-fit">
+                <Sparkles size={12} />
+                Special Offer
+              </span>
+              <h3 className="font-display font-bold text-2xl sm:text-3xl uppercase tracking-tight text-[#010101]">
+                PAKET SANTAI SORE
+              </h3>
+              <p className="text-sm text-[#7A7269] font-sans font-light leading-relaxed">
+                Kombinasi sempurna untuk menemani sore santai kamu. Pilih camilan atau stix favoritmu!
+              </p>
+              <div className="space-y-2.5 py-4 border-y border-[#D8D0C8]">
+                <div className="flex items-center gap-3">
+                  <span className="w-7 h-7 rounded-full bg-[#EAE4DA] text-[#7E4124] flex items-center justify-center text-xs font-bold">1</span>
+                  <span className="text-sm font-medium text-[#010101]">Es Kopi Susu Roviq</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="w-7 h-7 rounded-full bg-[#EAE4DA] text-[#7E4124] flex items-center justify-center text-xs font-bold">2</span>
+                  <span className="text-sm font-medium text-[#010101]">Roti Bakar / Stix Pilihan</span>
+                </div>
+              </div>
+              <Link
+                href="/menu"
+                className="inline-flex items-center gap-2 pl-5 pr-2 py-2 rounded-full bg-[#7E4124] hover:bg-[#5B2207] text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-95 group w-fit"
+              >
+                <span>Ambil Promo</span>
+                <span className="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center">
+                  <ArrowRight size={12} className="group-hover:translate-x-0.5 transition-transform" />
+                </span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 8. TESTIMONIALS ("KATA MEREKA TENTANG GH ROVIQ") */}
+      <section className="bg-[#7E4124] py-16 sm:py-20 lg:py-24 text-[#F3EFEA]">
+        <div className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
+          <div className="text-center max-w-2xl mx-auto space-y-3 mb-12">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 text-white text-[10px] font-bold uppercase tracking-wider">
+              Testimonials
+            </span>
+            <h2 className="font-display font-bold text-3xl sm:text-5xl uppercase tracking-tighter text-white leading-[0.95]">
+              KATA MEREKA<br />TENTANG GH ROVIQ
+            </h2>
+            <p className="text-sm text-white/70 font-sans font-light">
+              Dari pagi hingga malam, kopi kami menemani momen-momen bermakna pelanggan setia.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { name: 'Rina Ayu', role: 'Pelanggan Setia', text: 'Kopi susu roviq-nya juara sih! Tempatnya cozy banget buat kerja atau sekadar nongkrong santai bareng teman. Pasti balik lagi dan lagi.' },
+              { name: 'Budi Santoso', role: 'Coffee Lover', text: 'Akhirnya nemu kedai yang kopinya enak dan koleksi rokoknya lengkap. Paket kombonya juga worth it banget, harga bersahabat.' },
+              { name: 'Dinda Maharani', role: 'WFH Regular', text: 'Suasananya homey, WiFi kenceng, dan kopinya selalu konsisten. Stamp loyalty-nya bikin semangat ngumpulin buat dapetin kopi gratis!' },
+            ].map((t, i) => (
+              <div key={i} className="bg-white/10 backdrop-blur-sm rounded-[24px] p-6 sm:p-7 border border-white/15 space-y-4">
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, j) => (
+                    <Star key={j} size={14} className="fill-[#DD9F57] text-[#DD9F57]" />
+                  ))}
+                </div>
+                <p className="text-sm text-white/90 font-sans font-light leading-relaxed">&ldquo;{t.text}&rdquo;</p>
+                <div className="pt-3 border-t border-white/10">
+                  <p className="font-display font-bold text-sm uppercase tracking-wider text-white">{t.name}</p>
+                  <p className="text-xs text-white/60 font-sans">{t.role}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 9. FAQ ACCORDION */}
+      <section className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
+          {/* Left: Intro */}
+          <div className="lg:col-span-4 space-y-5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#7E4124] text-white text-[10px] font-bold uppercase tracking-wider">
+              FAQ
+            </span>
+            <h2 className="font-display font-bold text-3xl sm:text-4xl lg:text-5xl uppercase tracking-tighter text-[#010101] leading-[0.95]">
+              PERTANYAAN<br />YANG SERING<br />DITANYAKAN
+            </h2>
+            <p className="text-sm text-[#7A7269] font-sans font-light leading-relaxed">
+              Semua yang perlu kamu tahu tentang GH Roviq, dari menu, pemesanan, hingga kunjungan.
+            </p>
+            <Link
+              href="/menu"
+              className="inline-flex items-center gap-2 pl-5 pr-2 py-2 rounded-full border border-[#7E4124] text-[#7E4124] hover:bg-[#7E4124] hover:text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-95 group"
+            >
+              <span>Pesan Sekarang</span>
+              <span className="w-6 h-6 rounded-full bg-[#7E4124] text-white group-hover:bg-white group-hover:text-[#7E4124] flex items-center justify-center transition-all">
+                <ArrowRight size={12} />
+              </span>
+            </Link>
+          </div>
+          {/* Right: Accordion */}
+          <div className="lg:col-span-8 space-y-3">
+            {[
+              { q: 'Apakah bisa pesan antar (delivery) atau takeaway?', a: 'Tentu bisa! Kami melayani takeaway langsung di kedai dan juga delivery melalui pemesanan via WhatsApp. Tinggal pesan, bayar, dan kopi siap diantar ke lokasi kamu.' },
+              { q: 'Jam berapa GH Roviq Stix & Co buka setiap hari?', a: 'Kami buka setiap hari! Senin–Jumat pukul 08:00–22:00 WIB, dan Sabtu–Minggu lebih pagi dari 07:00–23:00 WIB. Mau ngopi pagi atau nongkrong malam, kami siap!' },
+              { q: 'Apakah tersedia area merokok (smoking area)?', a: 'Ada dong! Kami menyediakan smoking area outdoor yang nyaman dengan sirkulasi udara terbuka, lengkap dengan meja dan kursi santai. Nikmati kopi dan stix favoritmu tanpa khawatir.' },
+              { q: 'Metode pembayaran apa saja yang diterima?', a: 'Kami menerima pembayaran tunai dan QRIS (GoPay, OVO, Dana, ShopeePay, LinkAja, dan lainnya). Praktis, cepat, dan cashless-friendly!' },
+            ].map((item, i) => (
+              <div key={i} className="rounded-2xl bg-[#EAE4DA] border border-[#D8D0C8] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between gap-4 p-5 sm:p-6 text-left transition-colors hover:bg-[#E3DCCF]"
+                >
+                  <span className="font-display font-bold text-sm sm:text-base uppercase tracking-tight text-[#7E4124]">
+                    {item.q}
+                  </span>
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center shrink-0 transition-all duration-300 ${openFaq === i ? 'bg-[#7E4124] text-white' : 'bg-[#D8D0C8] text-[#7E4124]'}`}>
+                    {openFaq === i ? <Minus size={14} className="stroke-[2.5]" /> : <Plus size={14} className="stroke-[2.5]" />}
+                  </span>
+                </button>
+                <div className={`overflow-hidden transition-[max-height,opacity] duration-300 ease-[cubic-bezier(0.4,0,0.2,1)] ${openFaq === i ? 'max-h-[200px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                  <p className="px-5 sm:px-6 pb-5 sm:pb-6 text-sm text-[#7A7269] font-sans font-light leading-relaxed">
+                    {item.a}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 10. DIGITAL LOYALTY CARD BANNER (Ferea Dark Statement Card) */}
+      <section className="max-w-[1344px] mx-auto px-5 nav-desktop:px-[30px]">
         <div className="rounded-[32px] sm:rounded-[44px] bg-[#010101] text-[#F3EFEA] p-8 sm:p-14 lg:p-16 relative overflow-hidden shadow-2xl border border-white/10">
           
           {/* Ambient Glow */}
