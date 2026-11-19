@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ShoppingBag, Menu as MenuIcon, X, User, ArrowRight, Home, Coffee } from 'lucide-react';
 import { useCart } from '@/context/CartContext';
@@ -75,10 +76,23 @@ export const Navbar: React.FC = () => {
             </nav>
           </div>
 
-          {/* Center Column: Logo strictly centered with text "Gh Roviq Stix & Co" */}
+          {/* Center Column: Logo with logo-gh-roviq.svg and brown text "Gh Roviq Stix & Co" */}
           <div className="flex items-center justify-center w-1/3 text-center">
-            <Link href="/" className="select-none group">
-              <span className="font-display font-bold text-lg sm:text-2xl md:text-[26px] tracking-tight text-[#010101] group-hover:text-[#7E4124] transition-colors uppercase whitespace-nowrap">
+            <Link
+              href="/"
+              className="inline-flex items-center justify-center gap-2 sm:gap-2.5 select-none group"
+            >
+              <div className="relative w-6 h-6 sm:w-7 sm:h-7 shrink-0 transition-transform duration-300 group-hover:scale-105">
+                <Image
+                  src="/logo-gh-roviq.svg"
+                  alt="GH ROVIQ Logo"
+                  width={28}
+                  height={28}
+                  priority
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <span className="font-display font-bold text-xs sm:text-sm md:text-base tracking-wider text-[#7E4124] group-hover:text-[#4A2813] transition-colors uppercase whitespace-nowrap">
                 Gh Roviq Stix &amp; Co
               </span>
             </Link>
