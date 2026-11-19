@@ -9,6 +9,8 @@ import {
   isProductAvailable,
   setProductAvailability,
   getStoredProducts,
+  getCustomCategories,
+  addCustomCategory,
 } from '@/lib/store';
 
 interface EditProductModalProps {
@@ -36,18 +38,26 @@ export function EditProductModal({
     isAvailable: true,
   });
 
-  const existingCategories = React.useMemo(() => {
-    return Array.from(
-      new Set(getStoredProducts().map((p) => p.category?.trim()).filter(Boolean))
-    );
-  }, [isOpen]);
+  const [customCategoryInput, setCustomCategoryInput] = useState('');
+  const [categoryOptions, setCategoryOptions] = useState<string[]>([]);
+
+  // Load and combine all categories from catalog, custom, and defaults
+  const loadCategories = React.useCallback(() => {
+    const fromProducts = getStoredProducts().map((p) => p.category?.trim()).filter(Boolean);
+    const fromCustom = getCustomCategories();
+    const defaults = ['Kopi', 'Non-Coffee', 'Makanan & Bites', 'Signature Drinks', 'Pastry & Dessert', 'Manual Brew'];
+    const merged = Array.from(new Set([...fromProducts, ...fromCustom, ...defaults])).filter(Boolean);
+    setCategoryOptions(merged);
+    return merged;
+  }, []);
 
   useEffect(() => {
     if (isOpen) {
+      const cats = loadCategories();
       if (product) {
         setFormData({
           name: product.name || '',
-          category: product.category || '',
+          category: product.category || cats[0] || 'Kopi',
           price: product.price ?? '',
           description: product.description || '',
           image: product.image || '',
@@ -59,7 +69,7 @@ export function EditProductModal({
       } else {
         setFormData({
           name: '',
-          category: '',
+          category: cats[0] || 'Kopi',
           price: '',
           description: '',
           image: '',
@@ -69,8 +79,20 @@ export function EditProductModal({
           isAvailable: true,
         });
       }
+      setCustomCategoryInput('');
     }
-  }, [isOpen, product]);
+  }, [isOpen, product, loadCategories]);
+
+  const handleAddManualCategory = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    const clean = customCategoryInput.trim();
+    if (!clean) return;
+
+    addCustomCategory(clean);
+    setCategoryOptions((prev) => Array.from(new Set([...prev, clean])));
+    setFormData((prev) => ({ ...prev, category: clean }));
+    setCustomCategoryInput('');
+  };
 
   if (!isOpen) return null;
 
@@ -182,24 +204,66 @@ export function EditProductModal({
 
           {/* Kategori & Harga */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-1">
-              <label className="font-semibold uppercase tracking-wider text-[#3A302A] block">
-                Kategori Produk *
+            {/* Kategori Produk Dropdown + Manual Input Sync */}
+            <div className="space-y-1.5">
+              <label className="font-semibold uppercase tracking-wider text-[#3A302A] flex items-center justify-between">
+                <span>Kategori Produk *</span>
+                {formData.category && (
+                  <span className="text-[10px] text-[#C2652A] font-bold normal-case">
+                    Pilihan: {formData.category}
+                  </span>
+                )}
               </label>
-              <input
-                type="text"
-                required
-                placeholder="Ketik kategori baru / pilih..."
-                value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                list="category-suggestions"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#D8D0C8] text-xs text-[#3A302A] focus:outline-none focus:border-[#C2652A]"
-              />
-              <datalist id="category-suggestions">
-                {existingCategories.map((cat) => (
-                  <option key={cat} value={cat} />
-                ))}
-              </datalist>
+
+              {/* Dropdown Menu Kategori */}
+              <div className="relative">
+                <select
+                  required
+                  value={formData.category}
+                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-white border border-[#D8D0C8] text-xs text-[#3A302A] focus:outline-none focus:border-[#C2652A] appearance-none pr-8 cursor-pointer font-medium"
+                >
+                  <option value="" disabled>-- Pilih Kategori Produk --</option>
+                  {categoryOptions.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-[#9A9088] text-[10px]">
+                  ▼
+                </div>
+              </div>
+
+              {/* Manual Input untuk Menambahkan Kategori Baru */}
+              <div className="p-2.5 rounded-xl bg-white/70 border border-dashed border-[#D8D0C8] space-y-1.5 mt-1">
+                <span className="text-[10px] font-semibold text-[#7E4124] uppercase tracking-wide block">
+                  + Ketik Kategori Baru Manual
+                </span>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder="Misal: Mocktail / Dessert..."
+                    value={customCategoryInput}
+                    onChange={(e) => setCustomCategoryInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddManualCategory();
+                      }
+                    }}
+                    className="flex-1 px-3 py-1.5 rounded-lg bg-white border border-[#D8D0C8] text-xs text-[#3A302A] focus:outline-none focus:border-[#C2652A]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleAddManualCategory()}
+                    disabled={!customCategoryInput.trim()}
+                    className="px-3 py-1.5 rounded-lg bg-[#C2652A] hover:bg-[#A95420] disabled:bg-[#D8D0C8] disabled:cursor-not-allowed text-white text-xs font-semibold whitespace-nowrap transition-all active:scale-95 shadow-2xs"
+                  >
+                    + Tambah
+                  </button>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-1">

@@ -5,7 +5,87 @@ import { supabase, isSupabaseConfigured } from './supabase';
 const PRODUCTS_KEY = 'gh_roviq_products_v2';
 const UNAVAILABLE_PRODUCTS_KEY = 'gh_roviq_unavailable_products_v2';
 const ORDERS_KEY = 'gh_roviq_global_orders_v2';
+const CATEGORIES_KEY = 'gh_roviq_custom_categories_v1';
 const SYNC_CATALOG_NAME = '__CATALOG_SYNC__';
+
+/**
+ * Notifies all open tabs, windows, and pages immediately using Event + BroadcastChannel
+ */
+export function notifyStoreUpdate(): void {
+  if (typeof window === 'undefined') return;
+  try {
+    window.dispatchEvent(new Event('gh_products_updated'));
+    window.dispatchEvent(new Event('storage'));
+    if ('BroadcastChannel' in window) {
+      const bc = new BroadcastChannel('gh_roviq_sync_channel');
+      bc.postMessage({ type: 'SYNC_UPDATE', timestamp: Date.now() });
+      bc.close();
+    }
+  } catch {
+    // Ignore in unsupported environments
+  }
+}
+
+/**
+ * Helper to subscribe to any local or cross-tab store updates (instant sub-second sync)
+ */
+export function subscribeToStoreUpdates(callback: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+
+  const handleUpdate = () => callback();
+  window.addEventListener('gh_products_updated', handleUpdate);
+  window.addEventListener('storage', handleUpdate);
+  window.addEventListener('focus', handleUpdate);
+
+  let bc: BroadcastChannel | null = null;
+  try {
+    if ('BroadcastChannel' in window) {
+      bc = new BroadcastChannel('gh_roviq_sync_channel');
+      bc.onmessage = () => callback();
+    }
+  } catch {}
+
+  return () => {
+    window.removeEventListener('gh_products_updated', handleUpdate);
+    window.removeEventListener('storage', handleUpdate);
+    window.removeEventListener('focus', handleUpdate);
+    if (bc) {
+      bc.close();
+    }
+  };
+}
+
+/**
+ * Get custom categories manually added by admin
+ */
+export function getCustomCategories(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(CATEGORIES_KEY);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+/**
+ * Add a new custom category manually and broadcast sync across all components
+ */
+export function addCustomCategory(newCategory: string): string[] {
+  if (typeof window === 'undefined') return [];
+  const clean = newCategory.trim();
+  if (!clean) return getCustomCategories();
+
+  const current = getCustomCategories();
+  const updated = Array.from(new Set([...current, clean]));
+  try {
+    localStorage.setItem(CATEGORIES_KEY, JSON.stringify(updated));
+    notifyStoreUpdate();
+  } catch (err) {
+    console.error('Failed to save custom category:', err);
+  }
+  return updated;
+}
 
 /**
  * Pushes the current products array to Supabase cloud sync for cross-device visibility
@@ -113,7 +193,7 @@ export function saveStoredProducts(products: Product[], pushToCloud = true): voi
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-    window.dispatchEvent(new Event('gh_products_updated'));
+    notifyStoreUpdate();
     if (pushToCloud) {
       pushProductsToCloud(products);
     }
@@ -129,7 +209,7 @@ export function clearStoredProducts(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify([]));
-    window.dispatchEvent(new Event('gh_products_updated'));
+    notifyStoreUpdate();
     pushProductsToCloud([]);
   } catch (e) {
     console.error('Failed to clear products:', e);
@@ -178,9 +258,14 @@ export function isProductAvailable(id: string): boolean {
   if (typeof window === 'undefined') return true;
   try {
     const raw = localStorage.getItem(UNAVAILABLE_PRODUCTS_KEY);
-    if (!raw) return true;
-    const unavailableList: string[] = JSON.parse(raw);
-    return !unavailableList.includes(id);
+    const unavailableList: string[] = raw ? JSON.parse(raw) : [];
+    if (unavailableList.includes(id)) return false;
+
+    const products = getStoredProducts();
+    const product = products.find((p) => p.id === id);
+    if (product && product.isAvailable === false) return false;
+
+    return true;
   } catch {
     return true;
   }
@@ -188,6 +273,7 @@ export function isProductAvailable(id: string): boolean {
 
 /**
  * Toggle product stock availability ('Tersedia' / 'Habis')
+ * Automatically syncs to local state, cloud, and cross-tab broadcasts
  */
 export function setProductAvailability(id: string, available: boolean): void {
   if (typeof window === 'undefined') return;
@@ -203,7 +289,16 @@ export function setProductAvailability(id: string, available: boolean): void {
     }
 
     localStorage.setItem(UNAVAILABLE_PRODUCTS_KEY, JSON.stringify(updated));
-    window.dispatchEvent(new Event('gh_products_updated'));
+
+    // Also directly update the isAvailable flag on the stored product so cloud sync carries it
+    const currentProducts = getStoredProducts();
+    const idx = currentProducts.findIndex((p) => p.id === id);
+    if (idx > -1) {
+      currentProducts[idx] = { ...currentProducts[idx], isAvailable: available };
+      saveStoredProducts(currentProducts, true);
+    } else {
+      notifyStoreUpdate();
+    }
   } catch (e) {
     console.error('Failed to toggle stock availability:', e);
   }

@@ -10,6 +10,7 @@ export interface Product {
   badge?: string; // e.g. "Terlaris", "Baru", "Rekomendasi"
   temperatureOptions?: ('Panas' | 'Dingin')[];
   rating?: number;
+  isAvailable?: boolean;
 }
 
 export interface CartItem {

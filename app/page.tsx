@@ -18,7 +18,13 @@ import {
   Star,
 } from 'lucide-react';
 import { Product } from '@/types';
-import { getStoredProducts, syncCatalogWithCloud, saveStoredProducts } from '@/lib/store';
+import {
+  getStoredProducts,
+  syncCatalogWithCloud,
+  saveStoredProducts,
+  isProductAvailable,
+  subscribeToStoreUpdates,
+} from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { EditProductModal } from '@/components/admin/EditProductModal';
@@ -42,10 +48,15 @@ export default function HomePage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedOptions, setSelectedOptions] = useState<Record<string, 'Panas' | 'Dingin'>>({});
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
   const autoplayPlugin = React.useRef(
     Autoplay({ delay: 3500, stopOnInteraction: false, stopOnMouseEnter: true })
   );
+
+  const handleOptionSelect = (productId: string, opt: 'Panas' | 'Dingin') => {
+    setSelectedOptions((prev) => ({ ...prev, [productId]: opt }));
+  };
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
@@ -99,15 +110,12 @@ export default function HomePage() {
       )
       .subscribe();
 
-    window.addEventListener('gh_products_updated', syncProducts);
-    window.addEventListener('storage', syncProducts);
-    window.addEventListener('focus', syncProducts);
+    // Instant multi-tab, broadcast channel, and local storage reactivity
+    const unsubscribe = subscribeToStoreUpdates(syncProducts);
 
     return () => {
       supabase.removeChannel(channel);
-      window.removeEventListener('gh_products_updated', syncProducts);
-      window.removeEventListener('storage', syncProducts);
-      window.removeEventListener('focus', syncProducts);
+      unsubscribe();
     };
   }, []);
 
@@ -458,84 +466,138 @@ export default function HomePage() {
               className="w-full"
             >
               <CarouselContent className="-ml-4 sm:-ml-5">
-                {featuredProducts.map((product) => (
-                  <CarouselItem
-                    key={product.id}
-                    className="pl-4 sm:pl-5 basis-full sm:basis-[60%] md:basis-[48%] lg:basis-[33.333%]"
-                  >
-                    <div className="group bg-white rounded-[26px] border border-[#E7DFD3] p-4 sm:p-5 flex flex-col justify-between hover:border-[#7E4124] transition-all duration-300 hover:shadow-card h-full select-none">
-                      {/* Product Image Box */}
-                      <div className="relative aspect-square w-full rounded-[20px] overflow-hidden bg-[#F3EFEA] mb-4">
-                        <Image
-                          src={product.image}
-                          alt={product.name}
-                          fill
-                          unoptimized={Boolean(product.image?.startsWith('data:'))}
-                          className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
-                          sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                        />
-                        {product.badge && (
-                          <span className="absolute top-3 left-3 bg-[#010101]/85 backdrop-blur-sm text-white text-[9.5px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-white/20">
-                            {product.badge}
-                          </span>
-                        )}
-                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-bold text-[#010101] shadow-xs">
-                          ★ {product.rating || 4.9}
-                        </div>
-                      </div>
+                {featuredProducts.map((product) => {
+                  const currentOption =
+                    selectedOptions[product.id] ||
+                    (product.temperatureOptions ? product.temperatureOptions[0] : undefined);
+                  const available = isProductAvailable(product.id);
 
-                      {/* Info & Add Action */}
-                      <div className="flex-1 flex flex-col justify-between space-y-3">
-                        <div>
-                          <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E4124]">
-                            {product.category}
-                          </span>
-                          <h3 className="font-display font-bold text-lg text-[#010101] uppercase tracking-tight line-clamp-1 group-hover:text-[#7E4124] transition-colors mt-0.5">
-                            {product.name}
-                          </h3>
-                          <p className="text-xs text-[#7A7269] line-clamp-2 leading-relaxed font-light mt-1 font-sans">
-                            {product.description}
-                          </p>
-                        </div>
-
-                        <div className="pt-3 border-t border-[#F3EFEA] flex items-center justify-between">
-                          <div>
-                            <span className="text-[10px] text-[#7A7269] block font-sans">Harga</span>
-                            <span className="font-display font-bold text-base text-[#010101]">
-                              {formatRupiah(product.price)}
+                  return (
+                    <CarouselItem
+                      key={product.id}
+                      className="pl-4 sm:pl-5 basis-full sm:basis-[60%] md:basis-[48%] lg:basis-[33.333%]"
+                    >
+                      <div
+                        className={`group bg-white rounded-[26px] border border-[#E7DFD3] p-4 sm:p-5 flex flex-col justify-between hover:border-[#7E4124] transition-all duration-300 hover:shadow-card h-full select-none ${
+                          available ? '' : 'opacity-75 grayscale-[20%]'
+                        }`}
+                      >
+                        {/* Product Image Box */}
+                        <div className="relative aspect-square w-full rounded-[20px] overflow-hidden bg-[#F3EFEA] mb-4">
+                          <Image
+                            src={product.image}
+                            alt={product.name}
+                            fill
+                            unoptimized={Boolean(product.image?.startsWith('data:'))}
+                            className="object-cover group-hover:scale-105 transition-transform duration-500 ease-out"
+                            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                          />
+                          {product.badge && available && (
+                            <span className="absolute top-3 left-3 bg-[#010101]/85 backdrop-blur-sm text-white text-[9.5px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-white/20">
+                              {product.badge}
                             </span>
+                          )}
+                          {!available && (
+                            <span className="absolute top-3 left-3 bg-[#010101]/90 text-white text-[9.5px] uppercase font-bold tracking-wider px-2.5 py-1 rounded-full border border-white/20 shadow-sm">
+                              Stok Habis
+                            </span>
+                          )}
+                          <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2.5 py-0.5 rounded-full text-[10px] font-bold text-[#010101] shadow-xs">
+                            ★ {product.rating || 4.9}
+                          </div>
+                        </div>
+
+                        {/* Info & Add Action */}
+                        <div className="flex-1 flex flex-col justify-between space-y-3">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#7E4124]">
+                              {product.category}
+                            </span>
+                            <h3 className="font-display font-bold text-lg text-[#010101] uppercase tracking-tight line-clamp-1 group-hover:text-[#7E4124] transition-colors mt-0.5">
+                              {product.name}
+                            </h3>
+                            <p className="text-xs text-[#7A7269] line-clamp-2 leading-relaxed font-light mt-1 font-sans">
+                              {product.description}
+                            </p>
+
+                            {/* Temperature Option Pill (Panas / Dingin / Keduanya) */}
+                            {product.temperatureOptions && product.temperatureOptions.length > 0 && (
+                              <div className="pt-2.5 flex items-center gap-1.5 flex-wrap">
+                                {product.temperatureOptions.length > 1 ? (
+                                  <>
+                                    <span className="text-[9.5px] text-[#7A7269] font-medium mr-0.5">Suhu:</span>
+                                    {product.temperatureOptions.map((opt) => (
+                                      <button
+                                        key={opt}
+                                        type="button"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleOptionSelect(product.id, opt);
+                                        }}
+                                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-medium transition-all active:scale-95 ${
+                                          currentOption === opt
+                                            ? 'bg-[#7E4124] text-white shadow-2xs font-semibold'
+                                            : 'bg-[#F3EFEA] text-[#7A7269] hover:text-[#010101] border border-[#D8D0C8]'
+                                        }`}
+                                      >
+                                        {opt === 'Panas' ? '🔥 Panas' : '❄️ Dingin'}
+                                      </button>
+                                    ))}
+                                  </>
+                                ) : (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F3EFEA] border border-[#D8D0C8] text-[#7E4124]">
+                                    {product.temperatureOptions[0] === 'Panas' ? '🔥 Panas Saja' : '❄️ Dingin (Ice)'}
+                                  </span>
+                                )}
+                              </div>
+                            )}
                           </div>
 
-                          {isAdmin ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setEditingProduct(product);
-                                setIsEditModalOpen(true);
-                              }}
-                              className="px-3.5 py-2 rounded-full bg-[#EAE4DA] hover:bg-[#7E4124] text-[#010101] hover:text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1 active:scale-95"
-                            >
-                              <Edit2 size={12} />
-                              <span>Edit</span>
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                addItem(product);
-                                setIsDrawerOpen(true);
-                              }}
-                              className="px-4 py-2 rounded-full bg-[#010101] hover:bg-[#7E4124] text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-2xs group-hover:bg-[#7E4124]"
-                            >
-                              <Plus size={13} className="stroke-[3]" />
-                              <span>Order</span>
-                            </button>
-                          )}
+                          <div className="pt-3 border-t border-[#F3EFEA] flex items-center justify-between">
+                            <div>
+                              <span className="text-[10px] text-[#7A7269] block font-sans">Harga</span>
+                              <span className="font-display font-bold text-base text-[#010101]">
+                                {formatRupiah(product.price)}
+                              </span>
+                            </div>
+
+                            {isAdmin ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingProduct(product);
+                                  setIsEditModalOpen(true);
+                                }}
+                                className="px-3.5 py-2 rounded-full bg-[#EAE4DA] hover:bg-[#7E4124] text-[#010101] hover:text-white transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1 active:scale-95"
+                              >
+                                <Edit2 size={12} />
+                                <span>Edit</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                disabled={!available}
+                                onClick={() => {
+                                  if (!available) return;
+                                  addItem(product, currentOption);
+                                  setIsDrawerOpen(true);
+                                }}
+                                className={`px-4 py-2 rounded-full transition-all text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 active:scale-95 shadow-2xs ${
+                                  available
+                                    ? 'bg-[#010101] hover:bg-[#7E4124] text-white group-hover:bg-[#7E4124]'
+                                    : 'bg-[#D8D0C8] text-[#7A7269] cursor-not-allowed'
+                                }`}
+                              >
+                                <Plus size={13} className="stroke-[3]" />
+                                <span>{available ? 'Order' : 'Habis'}</span>
+                              </button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CarouselItem>
-                ))}
+                    </CarouselItem>
+                  );
+                })}
               </CarouselContent>
               <CarouselPrevious className="hidden md:flex -left-4 lg:-left-6" />
               <CarouselNext className="hidden md:flex -right-4 lg:-right-6" />

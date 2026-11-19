@@ -3,7 +3,14 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import Image from 'next/image';
 import { Search, Plus, Coffee, Sparkles, Edit2 } from 'lucide-react';
-import { getStoredProducts, isProductAvailable, syncCatalogWithCloud, saveStoredProducts } from '@/lib/store';
+import {
+  getStoredProducts,
+  isProductAvailable,
+  syncCatalogWithCloud,
+  saveStoredProducts,
+  getCustomCategories,
+  subscribeToStoreUpdates,
+} from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { CategoryType, Product } from '@/types';
 import { useCart } from '@/context/CartContext';
@@ -20,9 +27,11 @@ export default function MenuPage() {
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // Dynamic categories from catalog products
+  // Dynamic categories from catalog products + custom categories
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(products.map((p) => p.category?.trim()).filter(Boolean)));
+    const fromProducts = products.map((p) => p.category?.trim()).filter(Boolean);
+    const fromCustom = getCustomCategories();
+    const cats = Array.from(new Set([...fromProducts, ...fromCustom]));
     return ['Semua', ...cats];
   }, [products]);
 
@@ -69,15 +78,11 @@ export default function MenuPage() {
       )
       .subscribe();
 
-    window.addEventListener('gh_products_updated', sync);
-    window.addEventListener('storage', sync);
-    window.addEventListener('focus', sync);
+    const unsubscribe = subscribeToStoreUpdates(sync);
 
     return () => {
       supabase.removeChannel(channel);
-      window.removeEventListener('gh_products_updated', sync);
-      window.removeEventListener('storage', sync);
-      window.removeEventListener('focus', sync);
+      unsubscribe();
     };
   }, []);
 
@@ -261,23 +266,32 @@ export default function MenuPage() {
                         {product.description}
                       </p>
 
-                      {/* Temperature Option Pill (Panas / Dingin) if available */}
-                      {product.temperatureOptions && product.temperatureOptions.length > 1 && (
-                        <div className="pt-2 flex items-center gap-1.5">
-                          {product.temperatureOptions.map((opt) => (
-                            <button
-                              key={opt}
-                              type="button"
-                              onClick={() => handleOptionSelect(product.id, opt)}
-                              className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
-                                currentOption === opt
-                                  ? 'bg-[#010101] text-white shadow-2xs font-semibold'
-                                  : 'bg-[#F3EFEA] text-[#7A7269] hover:text-[#010101] border border-[#D8D0C8]'
-                              }`}
-                            >
-                              {opt}
-                            </button>
-                          ))}
+                      {/* Temperature Option Pill (Panas / Dingin / Keduanya) */}
+                      {product.temperatureOptions && product.temperatureOptions.length > 0 && (
+                        <div className="pt-2 flex items-center gap-1.5 flex-wrap">
+                          {product.temperatureOptions.length > 1 ? (
+                            <>
+                              <span className="text-[10px] text-[#7A7269] font-medium mr-0.5">Suhu:</span>
+                              {product.temperatureOptions.map((opt) => (
+                                <button
+                                  key={opt}
+                                  type="button"
+                                  onClick={() => handleOptionSelect(product.id, opt)}
+                                  className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all active:scale-95 ${
+                                    currentOption === opt
+                                      ? 'bg-[#7E4124] text-white shadow-2xs font-semibold'
+                                      : 'bg-[#F3EFEA] text-[#7A7269] hover:text-[#010101] border border-[#D8D0C8]'
+                                  }`}
+                                >
+                                  {opt === 'Panas' ? '🔥 Panas' : '❄️ Dingin'}
+                                </button>
+                              ))}
+                            </>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-[#F3EFEA] border border-[#D8D0C8] text-[#7E4124]">
+                              {product.temperatureOptions[0] === 'Panas' ? '🔥 Panas Saja' : '❄️ Dingin (Ice)'}
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>

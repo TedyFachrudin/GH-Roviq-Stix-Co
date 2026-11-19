@@ -14,6 +14,7 @@ import {
   Coffee,
   Sparkles,
   Filter,
+  RefreshCw,
 } from 'lucide-react';
 import { Product, CategoryType } from '@/types';
 import {
@@ -24,11 +25,14 @@ import {
   clearStoredProducts,
   syncCatalogWithCloud,
   saveStoredProducts,
+  getCustomCategories,
+  subscribeToStoreUpdates,
 } from '@/lib/store';
 import { supabase } from '@/lib/supabase';
 import { useAdminAuth } from '@/lib/admin';
 import { AdminSidebar } from '@/components/admin/AdminSidebar';
 import { EditProductModal } from '@/components/admin/EditProductModal';
+import { toast } from '@/components/ui/toast';
 
 export default function AdminKatalogPage() {
   const router = useRouter();
@@ -39,15 +43,18 @@ export default function AdminKatalogPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [stockFilter, setStockFilter] = useState<'Semua' | 'Tersedia' | 'Habis'>('Semua');
 
-  // Dynamic categories created by admin / from products
+  // Dynamic categories created by admin / from products + custom categories
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(products.map((p) => p.category?.trim()).filter(Boolean)));
+    const fromProducts = products.map((p) => p.category?.trim()).filter(Boolean);
+    const fromCustom = getCustomCategories();
+    const cats = Array.from(new Set([...fromProducts, ...fromCustom]));
     return ['Semua', ...cats];
   }, [products]);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Protect Admin route
   useEffect(() => {
@@ -59,6 +66,31 @@ export default function AdminKatalogPage() {
   // Load products
   const refreshProducts = () => {
     setProducts(getStoredProducts());
+  };
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      const items = await syncCatalogWithCloud();
+      if (items && items.length > 0) {
+        setProducts(items);
+      } else {
+        refreshProducts();
+      }
+      toast.add({
+        type: 'success',
+        title: 'Sinkronisasi Berhasil',
+        description: 'Status stok & data katalog telah disinkronkan ke seluruh perangkat.',
+      });
+    } catch {
+      toast.add({
+        type: 'error',
+        title: 'Sinkronisasi Gagal',
+        description: 'Terjadi kendala saat sinkronisasi cloud.',
+      });
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   useEffect(() => {
@@ -97,15 +129,11 @@ export default function AdminKatalogPage() {
       )
       .subscribe();
 
-    window.addEventListener('gh_products_updated', refreshProducts);
-    window.addEventListener('storage', refreshProducts);
-    window.addEventListener('focus', refreshProducts);
+    const unsubscribe = subscribeToStoreUpdates(refreshProducts);
 
     return () => {
       supabase.removeChannel(channel);
-      window.removeEventListener('gh_products_updated', refreshProducts);
-      window.removeEventListener('storage', refreshProducts);
-      window.removeEventListener('focus', refreshProducts);
+      unsubscribe();
     };
   }, []);
 
@@ -167,8 +195,15 @@ export default function AdminKatalogPage() {
 
   const handleToggleStock = (id: string) => {
     const current = isProductAvailable(id);
-    setProductAvailability(id, !current);
+    const next = !current;
+    const prod = products.find((p) => p.id === id);
+    setProductAvailability(id, next);
     refreshProducts();
+    toast.add({
+      type: next ? 'success' : 'warning',
+      title: next ? 'Stok Tersedia' : 'Stok Ditandai Habis',
+      description: `Menu "${prod?.name || 'Produk'}" sekarang ${next ? 'Tersedia' : 'Habis'}. Perubahan langsung tampil di Beranda & Menu pelanggan.`,
+    });
   };
 
   if (isLoading || !isAdmin) {
@@ -271,7 +306,19 @@ export default function AdminKatalogPage() {
           </div>
 
           {/* Action Button matching SVG (x:609, y:223, w:177, h:52, fill: #C2652A) */}
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Sync Cepat Button */}
+            <button
+              type="button"
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              className="px-4 py-3 rounded-xl bg-white hover:bg-[#FAF5EE] border border-[#D8D0C8] text-[#7E4124] text-xs font-semibold tracking-wide flex items-center gap-2 shadow-xs transition-all active:scale-95"
+              title="Sinkronkan data katalog dan status stok terbaru ke seluruh perangkat secara instan"
+            >
+              <RefreshCw size={14} className={isSyncing ? 'animate-spin' : ''} />
+              <span>{isSyncing ? 'Menyinkronkan...' : 'Sync Cepat'}</span>
+            </button>
+
             {totalProducts > 0 && (
               <button
                 type="button"
