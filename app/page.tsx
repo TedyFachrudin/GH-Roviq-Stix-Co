@@ -77,7 +77,7 @@ export default function HomePage() {
 
     // Cross-device cloud sync (guest, member, admin)
     syncCatalogWithCloud().then((cloudItems) => {
-      if (cloudItems && cloudItems.length > 0) {
+      if (cloudItems !== null && Array.isArray(cloudItems)) {
         setProducts(cloudItems);
       }
     });
@@ -120,7 +120,9 @@ export default function HomePage() {
   }, []);
 
   const featuredProducts =
-    products.filter((p) => p.badge === 'Terlaris' || p.badge).length > 0
+    products.length === 0
+      ? []
+      : products.filter((p) => p.badge === 'Terlaris' || p.badge).length > 0
       ? products.filter((p) => p.badge === 'Terlaris' || p.badge).slice(0, 8)
       : products.slice(0, 8);
 
@@ -470,7 +472,7 @@ export default function HomePage() {
                   const currentOption =
                     selectedOptions[product.id] ||
                     (product.temperatureOptions ? product.temperatureOptions[0] : undefined);
-                  const available = isProductAvailable(product.id);
+                  const available = isProductAvailable(product.id, product);
 
                   return (
                     <CarouselItem

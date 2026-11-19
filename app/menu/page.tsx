@@ -45,7 +45,7 @@ export default function MenuPage() {
 
     // Cross-device cloud sync (guest, member, admin)
     syncCatalogWithCloud().then((cloudItems) => {
-      if (cloudItems && cloudItems.length > 0) {
+      if (cloudItems !== null && Array.isArray(cloudItems)) {
         setProducts(cloudItems);
       }
     });
@@ -213,7 +213,7 @@ export default function MenuPage() {
               const currentOption =
                 selectedOptions[product.id] ||
                 (product.temperatureOptions ? product.temperatureOptions[0] : undefined);
-              const available = isProductAvailable(product.id);
+              const available = isProductAvailable(product.id, product);
 
               return (
                 <div

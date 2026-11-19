@@ -72,7 +72,7 @@ export default function AdminKatalogPage() {
     setIsSyncing(true);
     try {
       const items = await syncCatalogWithCloud();
-      if (items && items.length > 0) {
+      if (items !== null && Array.isArray(items)) {
         setProducts(items);
       } else {
         refreshProducts();
@@ -97,7 +97,7 @@ export default function AdminKatalogPage() {
     refreshProducts();
 
     syncCatalogWithCloud().then((cloudItems) => {
-      if (cloudItems && cloudItems.length > 0) {
+      if (cloudItems !== null && Array.isArray(cloudItems)) {
         setProducts(cloudItems);
       }
     });
@@ -148,7 +148,7 @@ export default function AdminKatalogPage() {
 
   // Stock calculations
   const totalProducts = products.length;
-  const inStockProducts = products.filter((p) => isProductAvailable(p.id)).length;
+  const inStockProducts = products.filter((p) => isProductAvailable(p.id, p)).length;
   const outOfStockProducts = totalProducts - inStockProducts;
 
   // Filtered products list
@@ -158,7 +158,7 @@ export default function AdminKatalogPage() {
       const matchQuery =
         p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const available = isProductAvailable(p.id);
+      const available = isProductAvailable(p.id, p);
       const matchStock =
         stockFilter === 'Semua' ||
         (stockFilter === 'Tersedia' && available) ||
@@ -436,7 +436,7 @@ export default function AdminKatalogPage() {
         ) : (
           <div className="space-y-3.5">
             {filteredProducts.map((product) => {
-              const available = isProductAvailable(product.id);
+              const available = isProductAvailable(product.id, product);
 
               return (
                 <div

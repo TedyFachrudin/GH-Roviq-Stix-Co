@@ -152,26 +152,15 @@ export async function fetchProductsFromCloud(): Promise<Product[] | null> {
 export async function syncCatalogWithCloud(): Promise<Product[]> {
   if (typeof window === 'undefined') return getStoredProducts();
 
-  const local = getStoredProducts();
   const cloud = await fetchProductsFromCloud();
 
-  if (cloud !== null) {
-    if (local.length === 0 && cloud.length > 0) {
-      saveStoredProducts(cloud, false);
-      return cloud;
-    }
-    if (local.length > 0 && cloud.length === 0) {
-      await pushProductsToCloud(local);
-      return local;
-    }
-    // Master source from cloud across all devices
+  if (cloud !== null && Array.isArray(cloud)) {
+    // Cloud is the master source of truth across all devices (including empty catalog [])
     saveStoredProducts(cloud, false);
     return cloud;
-  } else if (local.length > 0) {
-    await pushProductsToCloud(local);
   }
 
-  return local;
+  return getStoredProducts();
 }
 
 export function getStoredProducts(): Product[] {
@@ -193,6 +182,11 @@ export function saveStoredProducts(products: Product[], pushToCloud = true): voi
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
+
+    // Keep UNAVAILABLE_PRODUCTS_KEY synchronized with product.isAvailable
+    const unavailableIds = products.filter((p) => p.isAvailable === false).map((p) => p.id);
+    localStorage.setItem(UNAVAILABLE_PRODUCTS_KEY, JSON.stringify(unavailableIds));
+
     notifyStoreUpdate();
     if (pushToCloud) {
       pushProductsToCloud(products);
@@ -209,6 +203,7 @@ export function clearStoredProducts(): void {
   if (typeof window === 'undefined') return;
   try {
     localStorage.setItem(PRODUCTS_KEY, JSON.stringify([]));
+    localStorage.setItem(UNAVAILABLE_PRODUCTS_KEY, JSON.stringify([]));
     notifyStoreUpdate();
     pushProductsToCloud([]);
   } catch (e) {
@@ -254,15 +249,17 @@ export function deleteProduct(id: string): boolean {
 /**
  * Check if a product is marked as in-stock
  */
-export function isProductAvailable(id: string): boolean {
+export function isProductAvailable(id: string, productObj?: Product): boolean {
   if (typeof window === 'undefined') return true;
   try {
+    if (productObj && productObj.isAvailable === false) return false;
+
     const raw = localStorage.getItem(UNAVAILABLE_PRODUCTS_KEY);
     const unavailableList: string[] = raw ? JSON.parse(raw) : [];
     if (unavailableList.includes(id)) return false;
 
     const products = getStoredProducts();
-    const product = products.find((p) => p.id === id);
+    const product = productObj || products.find((p) => p.id === id);
     if (product && product.isAvailable === false) return false;
 
     return true;
